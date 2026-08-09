@@ -4942,9 +4942,26 @@
         return { interest, amort, total: interest + amort };
       };
 
-      const currentTotal = monthlyFor(totalLoan);
-      const currentA = monthlyFor(totalLoan * pctA / 100);
-      const currentB = monthlyFor(totalLoan * pctB / 100);
+      const currentA = { interest: (totalLoan * pctA / 100) * avgRate / 100 / 12 };
+      const currentB = { interest: (totalLoan * pctB / 100) * avgRate / 100 / 12 };
+
+      // Calculate initial year's monthly amortization
+      const currentYear = new Date().getFullYear();
+      const currentYearData = analysYears.find(y => y.year === currentYear);
+      let initAmortA_mth = 0;
+      let initAmortB_mth = 0;
+      if (currentYearData) {
+        const actASum = (currentYearData.actA || []).reduce((s, v) => s + (parseFloat(v) || 0), 0);
+        const actBSum = (currentYearData.actB || []).reduce((s, v) => s + (parseFloat(v) || 0), 0);
+        const estASum = (currentYearData.estA || []).reduce((s, v) => s + (parseFloat(v) || 0), 0);
+        const estBSum = (currentYearData.estB || []).reduce((s, v) => s + (parseFloat(v) || 0), 0);
+        initAmortA_mth = (actASum > 0 ? actASum : estASum) / 12;
+        initAmortB_mth = (actBSum > 0 ? actBSum : estBSum) / 12;
+      }
+      if (initAmortA_mth === 0 && initAmortB_mth === 0) {
+        initAmortA_mth = (totalLoan * pctA / 100) * avgAmortPct / 100 / 12;
+        initAmortB_mth = (totalLoan * pctB / 100) * avgAmortPct / 100 / 12;
+      }
 
       const thTd = 'padding:7px 10px;text-align:right;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);';
       const th1 = 'padding:7px 10px;text-align:left;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);';
@@ -4953,26 +4970,28 @@
       const sectionHdr = (label, color) =>
         '<th colspan="5" style="' + thTd + 'color:' + color + ';border-left:2px solid ' + color + ';background:rgba(0,0,0,0.02);">' + label + '</th>';
 
-      // Sub-headers
-      const subHdrs = () =>
-        ['Ränta', 'Amort', 'Totalt'].map(h => '<th style="' + thTd + '">' + h + '</th>').join('');
-
       const propA = totalPropVal * pctA / 100;
       const propB = totalPropVal * pctB / 100;
       const ltvCol = v => v <= 50 ? '#16a34a' : v <= 70 ? '#b45309' : '#dc2626';
       const cell = (v, color, small) => '<td style="padding:' + (small ? '5px 8px' : '8px 10px') + ';text-align:right;font-family:monospace;font-size:' + (small ? '11' : '12') + 'px;' + (color ? 'color:' + color + ';' : '') + '">' + fmt(v) + '</td>';
       const cellB = (v, small) => '<td style="padding:' + (small ? '5px 8px' : '8px 10px') + ';text-align:right;font-family:monospace;font-size:' + (small ? '11' : '12') + 'px;font-weight:600;">' + fmt(v) + '</td>';
       const ltvCell = (v, small) => '<td style="padding:' + (small ? '5px 8px' : '8px 10px') + ';text-align:right;font-family:monospace;font-size:' + (small ? '11' : '12') + 'px;font-weight:700;color:' + ltvCol(v) + ';">' + v.toFixed(1) + '%</td>';
-      const emptyCell = (n) => ('<td></td>').repeat(n);
 
-      const makeRow = (label, balance, balA, balB, isStart, prevTotal, loanBreakdown) => {
+      const makeRow = (label, balance, balA, balB, isStart, prevTotal, loanBreakdown, amortA_mth, amortB_mth) => {
         const ltv = totalPropVal > 0 ? balance / totalPropVal * 100 : 0;
         const ltvA = propA > 0 ? balA / propA * 100 : 0;
         const ltvB = propB > 0 ? balB / propB * 100 : 0;
-        const mT = monthlyFor(balance);
-        const mA = monthlyFor(balA);
-        const mB = monthlyFor(balB);
-        const saving = (prevTotal || currentTotal.total) - mT.total;
+
+        const interestA = balA * avgRate / 100 / 12;
+        const interestB = balB * avgRate / 100 / 12;
+        const interestT = balance * avgRate / 100 / 12;
+
+        const mA = { interest: interestA, amort: amortA_mth, total: interestA + amortA_mth };
+        const mB = { interest: interestB, amort: amortB_mth, total: interestB + amortB_mth };
+        const mT = { interest: interestT, amort: amortA_mth + amortB_mth, total: interestT + amortA_mth + amortB_mth };
+
+        const startTotalCost = currentA.interest + initAmortA_mth + currentB.interest + initAmortB_mth;
+        const saving = startTotalCost - mT.total;
         const rowBg = isStart ? 'background:rgba(37,99,235,0.04);' : '';
 
         let html = '<tr style="border-bottom:' + (loanBreakdown && loanBreakdown.length ? '1px dashed var(--border)' : '1px solid var(--border)') + ';' + rowBg + '">' +
@@ -4981,7 +5000,7 @@
           ltvCell(ltvA) + '<td style="padding:8px 10px;text-align:right;font-family:monospace;font-size:12px;color:var(--accent2);font-weight:600;">' + fmt(balA) + '</td>' + cell(mA.interest, 'var(--red)') + cell(mA.amort, '') + cellB(mA.total) +
           ltvCell(ltvB) + '<td style="padding:8px 10px;text-align:right;font-family:monospace;font-size:12px;color:var(--accent3);font-weight:600;">' + fmt(balB) + '</td>' + cell(mB.interest, 'var(--red)') + cell(mB.amort, '') + cellB(mB.total) +
           cell(mT.interest, 'var(--red)') + cell(mT.amort, '') + cellB(mT.total) +
-          '<td style="padding:8px 10px;text-align:right;font-family:monospace;font-size:12px;color:' + (saving > 0 ? 'var(--accent)' : 'var(--muted)') + ';">' + (saving > 1 ? '−' + fmt(saving) : '—') + '</td>' +
+          '<td style="padding:8px 10px;text-align:right;font-family:monospace;font-size:12px;color:' + (saving > 1 ? 'var(--accent)' : 'var(--muted)') + ';">' + (saving > 1 ? '−' + fmt(saving) : '—') + '</td>' +
           '<td style="padding:8px 10px;text-align:right;font-family:monospace;font-size:12px;font-weight:600;">' + fmt(balance) + '</td>' +
           '</tr>';
 
@@ -5018,11 +5037,10 @@
         propB: (l.currentPropertyValue || l.propertyValue || 0) * pctB / 100
       }));
       const initBreakdown = buildBreakdown(bolaan, null);
-      let rows = makeRow('Nu · ' + new Date().getFullYear(), totalLoan, totalLoan * pctA / 100, totalLoan * pctB / 100, true, null, initBreakdown);
+      let rows = makeRow('Nu · ' + new Date().getFullYear(), totalLoan, totalLoan * pctA / 100, totalLoan * pctB / 100, true, null, initBreakdown, initAmortA_mth, initAmortB_mth);
       let runBal = totalLoan;
       let runBalA = totalLoan * pctA / 100;
       let runBalB = totalLoan * pctB / 100;
-      let cumAmortA = 0, cumAmortB = 0;
       sorted.forEach(y => {
         const actASum = (y.actA || []).reduce((s, v) => s + (parseFloat(v) || 0), 0);
         const actBSum = (y.actB || []).reduce((s, v) => s + (parseFloat(v) || 0), 0);
@@ -5031,7 +5049,6 @@
         const amortA = actASum > 0 ? actASum : estASum;
         const amortB = actBSum > 0 ? actBSum : estBSum;
         const hasAct = actASum > 0 || actBSum > 0;
-        cumAmortA += amortA; cumAmortB += amortB;
         runBalA = Math.max(0, runBalA - amortA);
         runBalB = Math.max(0, runBalB - amortB);
         runBal = runBalA + runBalB;
@@ -5041,9 +5058,18 @@
           return share * runBal;
         });
         const breakdown = buildBreakdown(bolaan, loanBals);
-        rows += makeRow(y.year + (hasAct ? ' (utfall)' : ' (est)'), runBal, runBalA, runBalB, false, null, breakdown);
+
+        let amortA_mth = amortA / 12;
+        let amortB_mth = amortB / 12;
+        if (amortA_mth === 0 && amortB_mth === 0) {
+          amortA_mth = runBalA * avgAmortPct / 100 / 12;
+          amortB_mth = runBalB * avgAmortPct / 100 / 12;
+        }
+
+        rows += makeRow(y.year + (hasAct ? ' (utfall)' : ' (est)'), runBal, runBalA, runBalB, false, null, breakdown, amortA_mth, amortB_mth);
       });
 
+      const currentAmortPct = totalLoan > 0 ? ((initAmortA_mth + initAmortB_mth) * 12 / totalLoan * 100) : 0;
       tableEl.innerHTML =
         '<div style="overflow-x:auto;">' +
         '<table style="width:100%;border-collapse:collapse;font-size:12px;">' +
@@ -5068,7 +5094,7 @@
         '</thead>' +
         '<tbody>' + rows + '</tbody>' +
         '</table></div>' +
-        '<p style="font-size:11px;color:var(--muted);margin-top:10px;">' + avgRate.toFixed(2) + '% snitträta · ' + avgAmortPct.toFixed(2) + '% amortering · fastighetsvärde ' + fmt(totalPropVal) + '.</p>';
+        '<p style="font-size:11px;color:var(--muted);margin-top:10px;">' + avgRate.toFixed(2) + '% snittränta · ' + currentAmortPct.toFixed(2) + '% amortering · fastighetsvärde ' + fmt(totalPropVal) + '.</p>';
     }
 
     (function restoreSummeringLate() {
