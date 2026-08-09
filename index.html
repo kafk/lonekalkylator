@@ -2456,17 +2456,25 @@
     // Totals from loans
     const totalLoan2 = loans.reduce((s,l) => s + l.amount, 0);
     const totalPropVal2 = loans.reduce((s,l) => s + (l.propertyValue||0), 0);
-    // Loan per person based on property value (köpeskilling) × ownership %
-    const baseForSplit = totalPropVal2 > 0 ? totalPropVal2 : totalLoan2;
-    const debtA = Math.round(baseForSplit * pctA / 100);
-    const debtB = Math.round(baseForSplit * pctB / 100);
 
     // Insats (free input — subtracted once from each person's loan share)
     const insatsA = parseFloat(String(document.getElementById('insatsA')?.value||'0').replace(/[\s\u00a0kr]/gi,'')) || 0;
     const insatsB = parseFloat(String(document.getElementById('insatsB')?.value||'0').replace(/[\s\u00a0kr]/gi,'')) || 0;
-    // Nettoskuld = lånandel − insats (loan portion, not full property value)
-    const netDebtA = Math.max(0, debtA - insatsA);
-    const netDebtB = Math.max(0, debtB - insatsB);
+
+    // Implied total down payment (kontantinsats)
+    const impliedTotalInsats = Math.max(0, totalPropVal2 - totalLoan2);
+
+    // If no individual insatser are entered, assume they split the implied total insats by ownership %
+    const effectiveInsatsA = (insatsA === 0 && insatsB === 0) ? (impliedTotalInsats * pctA / 100) : insatsA;
+    const effectiveInsatsB = (insatsA === 0 && insatsB === 0) ? (impliedTotalInsats * pctB / 100) : insatsB;
+
+    // Ownership shares of the property value (köpeskilling)
+    const debtA = Math.round(totalPropVal2 * pctA / 100);
+    const debtB = Math.round(totalPropVal2 * pctB / 100);
+
+    // Nettoskuld = asset share − effective insats
+    const netDebtA = Math.max(0, debtA - effectiveInsatsA);
+    const netDebtB = Math.max(0, debtB - effectiveInsatsB);
     const totalNetDebt = netDebtA + netDebtB;
     const amortPctA = totalNetDebt > 0 ? (netDebtA / totalNetDebt * 100).toFixed(1) : '50';
     const amortPctB = totalNetDebt > 0 ? (netDebtB / totalNetDebt * 100).toFixed(1) : '50';
@@ -3264,6 +3272,27 @@
     y.est = y.estA.map((v,i) => { const a=parseFloat(v)||0, b=parseFloat(y.estB[i])||0; return a+b > 0 ? String(a+b) : ''; });
     y.act = y.actA.map((v,i) => { const a=parseFloat(v)||0, b=parseFloat(y.actB[i])||0; return a+b > 0 ? String(a+b) : ''; });
     saveAnalysYears();
+
+    // 1. Recalculate row sum
+    const rowSum = y[key].reduce((s,v)=>s+(parseFloat(v)||0),0);
+    const rowSumEl = document.getElementById('ay-row-sum-' + yr + '-' + key);
+    if (rowSumEl) rowSumEl.textContent = rowSum > 0 ? Math.round(rowSum).toLocaleString('sv-SE') : '—';
+
+    // 2. Recalculate monthly totals for the edited column (mi)
+    const type = (key === 'estA' || key === 'estB') ? 'est' : 'act';
+    const colValA = parseFloat(y[type + 'A'][mi]) || 0;
+    const colValB = parseFloat(y[type + 'B'][mi]) || 0;
+    const colSum = colValA + colValB;
+    const colSumEl = document.getElementById('ay-col-sum-' + yr + '-' + type + '-' + mi);
+    if (colSumEl) colSumEl.textContent = colSum > 0 ? Math.round(colSum).toLocaleString('sv-SE') : '—';
+
+    // 3. Recalculate monthly total row sum
+    const typeASum = y[type + 'A'].reduce((s,v)=>s+(parseFloat(v)||0),0);
+    const typeBSum = y[type + 'B'].reduce((s,v)=>s+(parseFloat(v)||0),0);
+    const typeTotal = typeASum + typeBSum;
+    const colSumTotEl = document.getElementById('ay-col-sum-tot-' + yr + '-' + type);
+    if (colSumTotEl) colSumTotEl.textContent = typeTotal > 0 ? Math.round(typeTotal).toLocaleString('sv-SE') : '—';
+
     // Recalculate totals for display
     const estASum2 = y.estA.reduce((s,v)=>s+(parseFloat(v)||0),0);
     const estBSum2 = y.estB.reduce((s,v)=>s+(parseFloat(v)||0),0);
@@ -3320,18 +3349,18 @@
         return '<tr style="border-bottom:1px solid var(--border);">' +
           '<td style="padding:3px 5px;font-size:10px;font-weight:700;color:' + color + ';white-space:nowrap;min-width:70px;">' + label + '</td>' +
           cells +
-          '<td style="font-family:monospace;font-size:11px;color:' + color + ';font-weight:600;text-align:right;padding:3px 4px;white-space:nowrap;">' + (sum>0?Math.round(sum).toLocaleString('sv-SE'):'—') + '</td>' +
+          '<td id="ay-row-sum-' + y.year + '-' + key + '" style="font-family:monospace;font-size:11px;color:' + color + ';font-weight:600;text-align:right;padding:3px 4px;white-space:nowrap;">' + (sum>0?Math.round(sum).toLocaleString('sv-SE'):'—') + '</td>' +
         '</tr>';
       };
 
       // Total rows
       const estTotCells = AY_MONTHS.map((_,mi) => {
         const v = (parseFloat(y.estA[mi])||0) + (parseFloat(y.estB[mi])||0);
-        return '<td style="font-family:monospace;font-size:11px;color:#f97316;font-weight:600;text-align:right;padding:3px 4px;background:rgba(249,115,22,0.04);">' + (v>0?Math.round(v).toLocaleString('sv-SE'):'—') + '</td>';
+        return '<td id="ay-col-sum-' + y.year + '-est-' + mi + '" style="font-family:monospace;font-size:11px;color:#f97316;font-weight:600;text-align:right;padding:3px 4px;background:rgba(249,115,22,0.04);">' + (v>0?Math.round(v).toLocaleString('sv-SE'):'—') + '</td>';
       }).join('');
       const actTotCells = AY_MONTHS.map((_,mi) => {
         const v = (parseFloat(y.actA[mi])||0) + (parseFloat(y.actB[mi])||0);
-        return '<td style="font-family:monospace;font-size:11px;color:#4f46e5;font-weight:600;text-align:right;padding:3px 4px;background:rgba(79,70,229,0.05);">' + (v>0?Math.round(v).toLocaleString('sv-SE'):'—') + '</td>';
+        return '<td id="ay-col-sum-' + y.year + '-act-' + mi + '" style="font-family:monospace;font-size:11px;color:#4f46e5;font-weight:600;text-align:right;padding:3px 4px;background:rgba(79,70,229,0.05);">' + (v>0?Math.round(v).toLocaleString('sv-SE'):'—') + '</td>';
       }).join('');
 
       return '<div class="ay-wrap">' +
@@ -3348,10 +3377,10 @@
           '<table class="ay-table"><thead><tr><th style="text-align:left;min-width:70px;">Rad</th>' + thM + '<th>Totalt</th></tr></thead><tbody>' +
             makeRow('estA', 'Est ' + nameA, '#f97316', '#f97316') +
             makeRow('estB', 'Est ' + nameB, '#f97316', '#f97316') +
-            '<tr style="border-bottom:2px solid #f97316;background:rgba(249,115,22,0.04);"><td style="padding:3px 5px;font-size:10px;font-weight:700;color:#f97316;white-space:nowrap;">Est Totalt</td>' + estTotCells + '<td style="font-family:monospace;font-size:11px;color:#f97316;font-weight:700;text-align:right;padding:3px 4px;">' + (estTotal>0?Math.round(estTotal).toLocaleString('sv-SE'):'—') + '</td></tr>' +
+            '<tr style="border-bottom:2px solid #f97316;background:rgba(249,115,22,0.04);"><td style="padding:3px 5px;font-size:10px;font-weight:700;color:#f97316;white-space:nowrap;">Est Totalt</td>' + estTotCells + '<td id="ay-col-sum-tot-' + y.year + '-est" style="font-family:monospace;font-size:11px;color:#f97316;font-weight:700;text-align:right;padding:3px 4px;">' + (estTotal>0?Math.round(estTotal).toLocaleString('sv-SE'):'—') + '</td></tr>' +
             makeRow('actA', 'Utfall ' + nameA, '#4f46e5', '#4f46e5') +
             makeRow('actB', 'Utfall ' + nameB, '#4f46e5', '#4f46e5') +
-            '<tr style="border-bottom:2px solid #4f46e5;background:rgba(79,70,229,0.05);"><td style="padding:3px 5px;font-size:10px;font-weight:700;color:#4f46e5;white-space:nowrap;">Utfall Totalt</td>' + actTotCells + '<td style="font-family:monospace;font-size:11px;color:#4f46e5;font-weight:700;text-align:right;padding:3px 4px;">' + (actTotal>0?Math.round(actTotal).toLocaleString('sv-SE'):'—') + '</td></tr>' +
+            '<tr style="border-bottom:2px solid #4f46e5;background:rgba(79,70,229,0.05);"><td style="padding:3px 5px;font-size:10px;font-weight:700;color:#4f46e5;white-space:nowrap;">Utfall Totalt</td>' + actTotCells + '<td id="ay-col-sum-tot-' + y.year + '-act" style="font-family:monospace;font-size:11px;color:#4f46e5;font-weight:700;text-align:right;padding:3px 4px;">' + (actTotal>0?Math.round(actTotal).toLocaleString('sv-SE'):'—') + '</td></tr>' +
           '</tbody></table>' +
         '</div>' +
       '</div>';
