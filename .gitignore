@@ -1,0 +1,13 @@
+# Windows system files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# VS Code / IDE settings if any
+.vscode/
+
+# Temporary or scratch files
+scratch/
+temp/
+tmp/
