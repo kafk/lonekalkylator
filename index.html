@@ -2859,9 +2859,10 @@
         if (hasAct) datasets.push({ label: 'Faktiskt saldo', data: actBal, borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,0.08)', borderWidth: 2, tension: 0.3, pointRadius: 2, fill: true, spanGaps: true });
 
         // Vertical LTV lines: find month index where balance first crosses 70% / 50%
-        if (mainLoan && mainLoan.propertyValue > 0) {
-          const ltv70val = mainLoan.propertyValue * 0.70;
-          const ltv50val = mainLoan.propertyValue * 0.50;
+        if (mainLoan && (mainLoan.currentPropertyValue || mainLoan.propertyValue) > 0) {
+          const mainPV = mainLoan.currentPropertyValue || mainLoan.propertyValue || 0;
+          const ltv70val = mainPV * 0.70;
+          const ltv50val = mainPV * 0.50;
           // Use est if available, otherwise act
           const balLine = hasEst ? estBal : actBal;
           let cross70 = null, cross50 = null;
@@ -2881,7 +2882,7 @@
         labels = sorted.map(y => String(y.year));
 
         const startBalY = loans.reduce((s, l) => s + (l.amount || 0), 0);
-        const propValY = loans.reduce((s, l) => s + (l.propertyValue || 0), 0);
+        const propValY = loans.reduce((s, l) => s + (l.currentPropertyValue || l.propertyValue || 0), 0);
 
         const firstYr = sorted.length > 0 ? sorted[0].year : new Date().getFullYear();
         labels = ['Start', ...sorted.map(y => String(y.year))];
@@ -2931,8 +2932,9 @@
           const col = '#4f46e5';
           datasets.push({ label: l.type + ' ' + Math.round(l.amount / 1000) + 'k', data, borderColor: col, backgroundColor: col + '15', borderWidth: 2, tension: 0.3, pointRadius: 2, fill: true });
           // LTV lines
-          if (l.type === 'Bolån' && l.propertyValue > 0) {
-            const ltv70 = Math.round(l.propertyValue * 0.70), ltv50 = Math.round(l.propertyValue * 0.50);
+          if (l.type === 'Bolån' && (l.currentPropertyValue || l.propertyValue) > 0) {
+            const lPV = l.currentPropertyValue || l.propertyValue || 0;
+            const ltv70 = Math.round(lPV * 0.70), ltv50 = Math.round(lPV * 0.50);
             const amortKr2 = l.amount * (l.amortPct || 0) / 100 / 12;
             const totalAmort2 = amortKr2 + (l.extraAmort || 0) + (l._extraA || 0) + (l._extraB || 0);
             let yr70 = null, yr50 = null, bal2 = l.amount;
@@ -3011,6 +3013,11 @@
 
     // ── LOAN MODULE ──
     let loans = JSON.parse(localStorage.getItem('ab_loans') || '[]');
+    loans.forEach(l => {
+      if (l.currentPropertyValue === undefined) {
+        l.currentPropertyValue = l.propertyValue || 3000000;
+      }
+    });
     var _pocketPeriod = localStorage.getItem('pocket_period') || "month";
     let loanIdCounter = loans.length ? Math.max(...loans.map(l => l.id)) + 1 : 1;
     // Initialize runtime fields
@@ -3029,7 +3036,7 @@
       const loan = {
         id: loanIdCounter++, type: 'Bolån',
         amount: 2000000, rate: 4.5, amortPct: 2.0, extraAmort: 0, rent: 0,
-        propertyValue: 3000000, startYear: new Date().getFullYear()
+        propertyValue: 3000000, currentPropertyValue: 3000000, startYear: new Date().getFullYear()
       };
       loans.push(loan);
       saveLoans();
@@ -3046,7 +3053,7 @@
       const l = loans.find(l => l.id === id);
       if (!l) return;
       if (field === 'amortPct') l.amortPct = parseFloat(value) || 0;
-      else if (['amount', 'extraAmort', 'propertyValue', 'rent'].includes(field)) l[field] = parseFloat(String(value).replace(/[\s\u00a0kr]/gi, '')) || 0;
+      else if (['amount', 'extraAmort', 'propertyValue', 'currentPropertyValue', 'rent'].includes(field)) l[field] = parseFloat(String(value).replace(/[\s\u00a0kr]/gi, '')) || 0;
       else if (field === 'rate') l[field] = parseFloat(value) || 0;
       else l[field] = value;
       saveLoans();
@@ -3058,7 +3065,7 @@
           const m = loanMonthly(l);
           const yLeft = loanYearsLeft(l);
           const yStr = isFinite(yLeft) ? (yLeft < 1 ? Math.ceil(yLeft * 12) + ' mån' : yLeft.toFixed(1) + ' år') : '∞';
-          const pv = l.propertyValue || 0;
+          const pv = l.currentPropertyValue || l.propertyValue || 0;
           const ltv = pv > 0 ? (l.amount / pv * 100).toFixed(1) : null;
           const equity = pv > 0 ? pv - l.amount : null;
           const ltvColor = ltv > 85 ? 'var(--red)' : ltv > 70 ? 'var(--warning)' : 'var(--accent)';
@@ -3148,8 +3155,9 @@
       const yStr = isFinite(yLeft) ? (yLeft < 1 ? Math.ceil(yLeft * 12) + ' mån' : yLeft.toFixed(1) + ' år') : '∞';
       const typeOpts = LOAN_TYPES.map(t => `<option${t === l.type ? ' selected' : ''}>${t}</option>`).join('');
       const pv = l.propertyValue || 0;
-      const ltv = pv > 0 ? (l.amount / pv * 100).toFixed(1) : null;
-      const equity = pv > 0 ? pv - l.amount : null;
+      const cpv = l.currentPropertyValue || l.propertyValue || 0;
+      const ltv = cpv > 0 ? (l.amount / cpv * 100).toFixed(1) : null;
+      const equity = cpv > 0 ? cpv - l.amount : null;
       const ltvColor = ltv > 85 ? 'var(--red)' : ltv > 70 ? 'var(--warning)' : 'var(--accent)';
       const showProp = l.type === 'Bolån';
       return `<div class="loan-card" id="lcard-${l.id}">
@@ -3163,13 +3171,21 @@
           <select onchange="updateLoan(${l.id},'type',this.value)">${typeOpts}</select>
         </div>
         ${showProp ? `<div class="lf">
-          <label>Bostadens värde</label>
+          <label>Värde vid köp</label>
           <input type="text" value="${pv.toLocaleString('sv-SE')} kr"
             inputmode="numeric" autocomplete="off"
             oninput="updateLoan(${l.id},'propertyValue',this.value)"
             onkeydown="if(event.key==='Enter'){fmtLoanInput(this);this.blur();}"
             onblur="fmtLoanInput(this)">
-        </div>` : '<div class="lf"></div>'}
+        </div>
+        <div class="lf">
+          <label>Nuvarande värde</label>
+          <input type="text" value="${cpv.toLocaleString('sv-SE')} kr"
+            inputmode="numeric" autocomplete="off"
+            oninput="updateLoan(${l.id},'currentPropertyValue',this.value)"
+            onkeydown="if(event.key==='Enter'){fmtLoanInput(this);this.blur();}"
+            onblur="fmtLoanInput(this)">
+        </div>` : '<div class="lf"></div><div class="lf"></div>'}
         <div class="lf">
           <label>Lånebelopp</label>
           <input type="text" value="${l.amount.toLocaleString('sv-SE')} kr"
@@ -3207,8 +3223,8 @@
         ${showProp && ltv ? `
           <div class="lr"><span class="lrl">Belåningsgrad (LTV)</span><span class="lrv" style="color:${ltvColor}">${ltv}%</span></div>
           <div class="lr"><span class="lrl">Eget kapital</span><span class="lrv" style="color:var(--accent)">${Math.round(equity).toLocaleString('sv-SE')} kr</span></div>
-          ${parseFloat(ltv) > 75 ? `<div class="lr" style="background:rgba(180,83,9,0.04);border-color:rgba(180,83,9,0.3)"><span class="lrl">Tid till 75% belåning</span><span class="lrv" style="color:var(--warning)">${fmtMonths(monthsToLTV(l.amount, l.rate, m.amort, (l.extraAmort || 0) + (l._extraA || 0) + (l._extraB || 0), pv, 75))}</span></div>` : ''}
-          ${parseFloat(ltv) > 50 ? `<div class="lr" style="background:rgba(22,163,74,0.04);border-color:rgba(22,163,74,0.3)"><span class="lrl">Tid till 50% belåning</span><span class="lrv" style="color:var(--accent)">${fmtMonths(monthsToLTV(l.amount, l.rate, m.amort, (l.extraAmort || 0) + (l._extraA || 0) + (l._extraB || 0), pv, 50))}</span></div>` : ''}
+          ${parseFloat(ltv) > 75 ? `<div class="lr" style="background:rgba(180,83,9,0.04);border-color:rgba(180,83,9,0.3)"><span class="lrl">Tid till 75% belåning</span><span class="lrv" style="color:var(--warning)">${fmtMonths(monthsToLTV(l.amount, l.rate, m.amort, (l.extraAmort || 0) + (l._extraA || 0) + (l._extraB || 0), cpv, 75))}</span></div>` : ''}
+          ${parseFloat(ltv) > 50 ? `<div class="lr" style="background:rgba(22,163,74,0.04);border-color:rgba(22,163,74,0.3)"><span class="lrl">Tid till 50% belåning</span><span class="lrv" style="color:var(--accent)">${fmtMonths(monthsToLTV(l.amount, l.rate, m.amort, (l.extraAmort || 0) + (l._extraA || 0) + (l._extraB || 0), cpv, 50))}</span></div>` : ''}
         ` : ''}
       </div>
     </div>`;
@@ -4347,7 +4363,7 @@
       const tableWrap = document.getElementById('ltv-month-table-wrap');
       if (!emptyEl || !tableWrap) return;
 
-      const bolaan = loans.filter(l => l.type === 'Bolån' && l.amount > 0 && l.propertyValue > 0);
+      const bolaan = loans.filter(l => l.type === 'Bolån' && l.amount > 0 && (l.currentPropertyValue > 0 || l.propertyValue > 0));
       if (bolaan.length === 0) { emptyEl.style.display = 'block'; tableWrap.style.display = 'none'; return; }
 
       emptyEl.style.display = 'none'; tableWrap.style.display = 'block';
@@ -4357,7 +4373,7 @@
 
       // Start balance from loan cards
       const totalAmount = bolaan.reduce((s, l) => s + l.amount, 0);
-      const totalPropVal = bolaan.reduce((s, l) => s + l.propertyValue, 0);
+      const totalPropVal = bolaan.reduce((s, l) => s + (l.currentPropertyValue || l.propertyValue || 0), 0);
 
       // Build month lookup from analysYears utfall (act) — keyed by "YYYY-M" (0-indexed month)
       const actByMonth = {};
@@ -4902,12 +4918,12 @@
       const tableEl = document.getElementById('ltv-cost-table');
       if (!emptyEl || !tableEl) return;
 
-      const bolaan = loans.filter(l => l.amount > 0 && l.propertyValue > 0);
+      const bolaan = loans.filter(l => l.amount > 0 && (l.currentPropertyValue > 0 || l.propertyValue > 0));
       const hasYears = analysYears.length > 0;
       if (bolaan.length === 0 || !hasYears) { emptyEl.style.display = 'block'; tableEl.style.display = 'none'; return; }
       emptyEl.style.display = 'none'; tableEl.style.display = 'block';
 
-      const totalPropVal = bolaan.reduce((s, l) => s + l.propertyValue, 0);
+      const totalPropVal = bolaan.reduce((s, l) => s + (l.currentPropertyValue || l.propertyValue || 0), 0);
       const totalLoan = bolaan.reduce((s, l) => s + l.amount, 0);
       const avgRate = bolaan.reduce((s, l) => s + l.rate * l.amount, 0) / totalLoan;
       const avgAmortPct = bolaan.reduce((s, l) => s + (l.amortPct || 0) * l.amount, 0) / totalLoan;
@@ -4997,9 +5013,9 @@
         bal: balances ? balances[i] : l.amount,
         balA: (balances ? balances[i] : l.amount) * pctA / 100,
         balB: (balances ? balances[i] : l.amount) * pctB / 100,
-        propV: l.propertyValue || 0,
-        propA: (l.propertyValue || 0) * pctA / 100,
-        propB: (l.propertyValue || 0) * pctB / 100
+        propV: l.currentPropertyValue || l.propertyValue || 0,
+        propA: (l.currentPropertyValue || l.propertyValue || 0) * pctA / 100,
+        propB: (l.currentPropertyValue || l.propertyValue || 0) * pctB / 100
       }));
       const initBreakdown = buildBreakdown(bolaan, null);
       let rows = makeRow('Nu · ' + new Date().getFullYear(), totalLoan, totalLoan * pctA / 100, totalLoan * pctB / 100, true, null, initBreakdown);
