@@ -1263,7 +1263,7 @@
   });
 
   let municipalTax = 0.3260;
-  let momsPeriod = 'kvartal';
+  let momsPeriod = localStorage.getItem('ab_moms_period') || 'kvartal';
 
   function updateTaxDisplay() {
     municipalTax = parseFloat(sel.value) / 100;
@@ -1275,6 +1275,7 @@
 
   function setMomsPeriod(p) {
     momsPeriod = p;
+    try { localStorage.setItem('ab_moms_period', p); } catch(e) {}
     const bK = document.getElementById('btn-kvartal');
     const bA = document.getElementById('btn-ar');
     const lbl = document.getElementById('moms-period-label');
@@ -1314,6 +1315,11 @@
     const costs         = parseNum(document.getElementById('costs').value);
     const desiredDiv    = parseNum(document.getElementById('desiredDividend').value);
     const church        = document.getElementById('churchMember').checked;
+
+    const birthYearEl   = document.getElementById('birthYear');
+    const birthYear     = birthYearEl ? parseInt(birthYearEl.value) || 1986 : 1986;
+    const ageDisplayEl  = document.getElementById('ageDisplay');
+    if (ageDisplayEl) ageDisplayEl.textContent = `Ålder under 2025: ${2025 - birthYear} år`;
 
     const EMPLOYER_RATE  = 0.3142;   // arbetsgivaravgift AB
     const CORP_TAX       = 0.206;    // bolagsskatt
@@ -1490,6 +1496,7 @@
     }
     // Keep snapshot in sync after every calc
     updateSnapshot();
+    saveInputs();
     // Refresh månadsfördelning if visible
     if (document.getElementById('page-manad')?.classList.contains('active')) renderManad();
   }
@@ -1521,9 +1528,62 @@
       '<div style="margin-top:8px;font-size:11px;color:#6b7280;">Du får hem <strong style="color:#16a34a;">' + parseFloat(pctNet).toFixed(0) + '%</strong> av vad bolaget betalar för dig.</div>';
   }
 
+  function saveInputs() {
+    try {
+      const data = {
+        revenue: parseNum(document.getElementById('revenue').value),
+        salary: parseNum(document.getElementById('salary').value),
+        costs: parseNum(document.getElementById('costs').value),
+        desiredDividend: parseNum(document.getElementById('desiredDividend').value),
+        birthYear: parseInt(document.getElementById('birthYear').value) || 1986,
+        municipalityIndex: document.getElementById('municipality').selectedIndex,
+        churchMember: document.getElementById('churchMember').checked
+      };
+      localStorage.setItem('ab_kalkyl_inputs', JSON.stringify(data));
+    } catch (e) {
+      console.error('Failed to save inputs:', e);
+    }
+  }
+
+  function restoreInputs() {
+    try {
+      const data = JSON.parse(localStorage.getItem('ab_kalkyl_inputs') || 'null');
+      if (!data) return;
+
+      if (data.revenue !== undefined) {
+        document.getElementById('revenue').value = formatNum(data.revenue);
+        document.getElementById('revenueSlider').value = data.revenue;
+      }
+      if (data.salary !== undefined) {
+        document.getElementById('salary').value = formatNum(data.salary);
+        document.getElementById('salarySlider').value = data.salary;
+      }
+      if (data.costs !== undefined) {
+        document.getElementById('costs').value = formatNum(data.costs);
+        document.getElementById('costsSlider').value = data.costs;
+      }
+      if (data.desiredDividend !== undefined) {
+        document.getElementById('desiredDividend').value = formatNum(data.desiredDividend);
+        document.getElementById('desiredDividendSlider').value = data.desiredDividend;
+      }
+      if (data.birthYear !== undefined) {
+        document.getElementById('birthYear').value = data.birthYear;
+      }
+      if (data.municipalityIndex !== undefined) {
+        document.getElementById('municipality').selectedIndex = data.municipalityIndex;
+      }
+      if (data.churchMember !== undefined) {
+        document.getElementById('churchMember').checked = data.churchMember;
+      }
+    } catch (e) {
+      console.error('Failed to restore inputs:', e);
+    }
+  }
+
     // Init
+  restoreInputs();
   updateTaxDisplay();
-  setMomsPeriod('kvartal');
+  setMomsPeriod(momsPeriod);
 
   // ── SNAPSHOT ──
   function updateSnapshot() {
@@ -2035,7 +2095,7 @@
 
   // ── LOAN MODULE ──
   let loans = JSON.parse(localStorage.getItem('ab_loans') || '[]');
-  var _pocketPeriod = "month";
+  var _pocketPeriod = localStorage.getItem('pocket_period') || "month";
   let loanIdCounter = loans.length ? Math.max(...loans.map(l=>l.id))+1 : 1;
   // Initialize runtime fields
   loans.forEach(l => { l._extraA = 0; l._extraB = 0; });
@@ -3806,6 +3866,7 @@
   // Pocket period toggle
   function setPocketPeriod(p) {
     _pocketPeriod = p;
+    try { localStorage.setItem('pocket_period', p); } catch(e) {}
     document.getElementById('btn-pocket-month').style.background = p==='month' ? 'var(--accent2)' : 'transparent';
     document.getElementById('btn-pocket-month').style.color = p==='month' ? '#fff' : 'var(--muted)';
     document.getElementById('btn-pocket-year').style.background = p==='year' ? 'var(--accent2)' : 'transparent';
@@ -4027,6 +4088,11 @@
       calcSplit();
     } catch(e) {}
   })();
+
+  // Restore pocket period visual state
+  try {
+    setPocketPeriod(_pocketPeriod);
+  } catch(e) {}
 
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
