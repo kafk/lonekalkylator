@@ -1652,13 +1652,23 @@
             style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
             <div id="loanLineLegend" style="display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);">
             </div>
-            <div class="toggle-row" style="gap:4px;">
-              <button id="btn-chart-months" class="tbtn" style="font-size:11px;padding:4px 10px;"
-                onclick="setChartView('months')">Månader</button>
-              <button id="btn-chart-years" class="tbtn active" style="font-size:11px;padding:4px 10px;"
-                onclick="setChartView('years')">År</button>
-              <button id="btn-chart-loan" class="tbtn" style="font-size:11px;padding:4px 10px;"
-                onclick="setChartView('loan')">Låneutveckling</button>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+              <div class="toggle-row" style="gap:4px;">
+                <button id="btn-series-all" class="tbtn active" style="font-size:11px;padding:4px 10px;"
+                  onclick="setChartSeries('all')">Alla</button>
+                <button id="btn-series-est" class="tbtn" style="font-size:11px;padding:4px 10px;"
+                  onclick="setChartSeries('est')">Estimat</button>
+                <button id="btn-series-act" class="tbtn" style="font-size:11px;padding:4px 10px;"
+                  onclick="setChartSeries('act')">Utfall</button>
+              </div>
+              <div class="toggle-row" style="gap:4px;">
+                <button id="btn-chart-months" class="tbtn" style="font-size:11px;padding:4px 10px;"
+                  onclick="setChartView('months')">Månader</button>
+                <button id="btn-chart-years" class="tbtn active" style="font-size:11px;padding:4px 10px;"
+                  onclick="setChartView('years')">År</button>
+                <button id="btn-chart-loan" class="tbtn" style="font-size:11px;padding:4px 10px;"
+                  onclick="setChartView('loan')">Låneutveckling</button>
+              </div>
             </div>
           </div>
           <div style="position:relative;height:320px;"><canvas id="loanLineChart"></canvas></div>
@@ -2793,6 +2803,16 @@
     function renderBigChart() { renderLoanLineChart(); }
 
     let chartViewMode = 'years'; // 'months' | 'years' | 'loan'
+    let chartSeriesFilter = 'all'; // 'all' | 'est' | 'act'
+
+    function setChartSeries(mode) {
+      chartSeriesFilter = mode;
+      ['all', 'est', 'act'].forEach(m => {
+        const el = document.getElementById('btn-series-' + m);
+        if (el) el.classList.toggle('active', m === mode);
+      });
+      renderLoanLineChart();
+    }
 
     function setChartView(mode) {
       chartViewMode = mode;
@@ -2819,11 +2839,18 @@
       }
       emptyEl.style.display = 'none'; areaEl.style.display = 'block';
 
-      // Ensure active button is marked
+      // Ensure active buttons are marked
       ['months', 'years', 'loan'].forEach(m => {
         const btn = document.getElementById('btn-chart-' + m);
         if (btn) btn.classList.toggle('active', m === chartViewMode);
       });
+      ['all', 'est', 'act'].forEach(m => {
+        const btn = document.getElementById('btn-series-' + m);
+        if (btn) btn.classList.toggle('active', m === chartSeriesFilter);
+      });
+
+      const showEst = chartSeriesFilter === 'all' || chartSeriesFilter === 'est';
+      const showAct = chartSeriesFilter === 'all' || chartSeriesFilter === 'act';
 
       const datasets = [];
       const ltvVerticals = [];
@@ -2834,13 +2861,9 @@
         labels = sorted.flatMap(y => AY_MONTHS.map(m => m + ' ' + y.year));
 
         const mainLoan = loans.find(l => l.amount > 0) || null;
-        // If no loan, derive start balance from total of all entered values * 12 (rough estimate)
-        // or use 0 and show cumulative paid instead
         const totalEnteredEst = [...analysYears].flatMap(y => y.est).reduce((s, v) => s + (parseFloat(v) || 0), 0);
         const startBalance = mainLoan ? mainLoan.amount : totalEnteredEst > 0 ? totalEnteredEst * 12 : 0;
 
-        // Cumulative balance: start from loan amount, subtract each month's amort (in tSEK → kr)
-        // Always show balance — carry forward even for months with no input
         const estBal = [], actBal = [];
         let runEst = startBalance, runAct = startBalance;
         let hasEst = false, hasAct = false;
@@ -2850,42 +2873,50 @@
             const actAmt = parseFloat(y.act[mi]) || 0;
             if (estAmt > 0) { runEst = Math.max(0, runEst - estAmt); hasEst = true; }
             if (actAmt > 0) { runAct = Math.max(0, runAct - actAmt); hasAct = true; }
-            // Always push current balance (not null) so line is continuous
             estBal.push(runEst);
             actBal.push(runAct);
           }
         });
 
-        if (hasEst) datasets.push({ label: 'Estimerat saldo', data: estBal, borderColor: '#f97316', backgroundColor: 'transparent', borderWidth: 2, borderDash: [6, 4], tension: 0.3, pointRadius: 2, spanGaps: true });
-        if (hasAct) datasets.push({ label: 'Faktiskt saldo', data: actBal, borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,0.08)', borderWidth: 2, tension: 0.3, pointRadius: 2, fill: true, spanGaps: true });
+        if (hasEst && showEst) datasets.push({ label: 'Estimerat saldo', data: estBal, borderColor: '#f97316', backgroundColor: 'transparent', borderWidth: 2, borderDash: [6, 4], tension: 0.3, pointRadius: 2, spanGaps: true });
+        if (hasAct && showAct) datasets.push({ label: 'Faktiskt saldo', data: actBal, borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,0.08)', borderWidth: 2, tension: 0.3, pointRadius: 2, fill: true, spanGaps: true });
 
-        // Vertical LTV lines: find month index where balance first crosses 70% / 50%
-        if (mainLoan && (mainLoan.currentPropertyValue || mainLoan.propertyValue) > 0) {
-          const mainPV = mainLoan.currentPropertyValue || mainLoan.propertyValue || 0;
-          const ltv70val = mainPV * 0.70;
-          const ltv50val = mainPV * 0.50;
-          // Use est if available, otherwise act
-          const balLine = hasEst ? estBal : actBal;
-          let cross70 = null, cross50 = null;
-          balLine.forEach((v, i) => {
-            if (v !== null) {
-              if (cross70 === null && v <= ltv70val) cross70 = i;
-              if (cross50 === null && v <= ltv50val) cross50 = i;
-            }
-          });
-          if (cross70 !== null) ltvVerticals.push({ year: cross70, color: '#b45309', label: '70% LTV — ' + labels[cross70] });
-          if (cross50 !== null) ltvVerticals.push({ year: cross50, color: '#16a34a', label: '50% LTV — ' + labels[cross50] });
+        // Vertical LTV lines for both Estimat and Utfall
+        const totalPV = loans.reduce((s, l) => s + (l.currentPropertyValue || l.propertyValue || 0), 0);
+        if (totalPV > 0) {
+          const ltv70val = totalPV * 0.70;
+          const ltv50val = totalPV * 0.50;
+          if (hasEst && showEst) {
+            let cross70Est = null, cross50Est = null;
+            estBal.forEach((v, i) => {
+              if (v !== null) {
+                if (cross70Est === null && v <= ltv70val) cross70Est = i;
+                if (cross50Est === null && v <= ltv50val) cross50Est = i;
+              }
+            });
+            if (cross70Est !== null) ltvVerticals.push({ year: cross70Est, color: '#f97316', dash: [6, 4], label: '70% LTV (Est) — ' + labels[cross70Est] });
+            if (cross50Est !== null) ltvVerticals.push({ year: cross50Est, color: '#ea580c', dash: [6, 4], label: '50% LTV (Est) — ' + labels[cross50Est] });
+          }
+          if (hasAct && showAct) {
+            let cross70Act = null, cross50Act = null;
+            actBal.forEach((v, i) => {
+              if (v !== null) {
+                if (cross70Act === null && v <= ltv70val) cross70Act = i;
+                if (cross50Act === null && v <= ltv50val) cross50Act = i;
+              }
+            });
+            if (cross70Act !== null) ltvVerticals.push({ year: cross70Act, color: '#4f46e5', dash: [3, 3], label: '70% LTV (Utfall) — ' + labels[cross70Act] });
+            if (cross50Act !== null) ltvVerticals.push({ year: cross50Act, color: '#16a34a', dash: [3, 3], label: '50% LTV (Utfall) — ' + labels[cross50Act] });
+          }
         }
 
       } else if (chartViewMode === 'years' && hasYearData) {
         // År view: show remaining loan balance per year based on cumulative amortization
         const sorted = [...analysYears].sort((a, b) => a.year - b.year);
-        labels = sorted.map(y => String(y.year));
 
         const startBalY = loans.reduce((s, l) => s + (l.amount || 0), 0);
         const propValY = loans.reduce((s, l) => s + (l.currentPropertyValue || l.propertyValue || 0), 0);
 
-        const firstYr = sorted.length > 0 ? sorted[0].year : new Date().getFullYear();
         labels = ['Start', ...sorted.map(y => String(y.year))];
 
         const estBalY = [startBalY > 0 ? startBalY : null];
@@ -2901,22 +2932,34 @@
           actBalY.push(startBalY > 0 ? runActY : null);
         });
 
-        if (hasEstY) datasets.push({ label: 'Estimerat saldo', data: estBalY, borderColor: '#f97316', backgroundColor: 'transparent', borderWidth: 2, borderDash: [6, 4], tension: 0.3, pointRadius: 5, pointBackgroundColor: '#f97316', pointBorderColor: '#fff', pointBorderWidth: 2, spanGaps: true });
-        if (hasActY) datasets.push({ label: 'Faktiskt saldo', data: actBalY, borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,0.08)', borderWidth: 2, tension: 0.3, pointRadius: 5, pointBackgroundColor: '#4f46e5', pointBorderColor: '#fff', pointBorderWidth: 2, fill: true, spanGaps: true });
+        if (hasEstY && showEst) datasets.push({ label: 'Estimerat saldo', data: estBalY, borderColor: '#f97316', backgroundColor: 'transparent', borderWidth: 2, borderDash: [6, 4], tension: 0.3, pointRadius: 5, pointBackgroundColor: '#f97316', pointBorderColor: '#fff', pointBorderWidth: 2, spanGaps: true });
+        if (hasActY && showAct) datasets.push({ label: 'Faktiskt saldo', data: actBalY, borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,0.08)', borderWidth: 2, tension: 0.3, pointRadius: 5, pointBackgroundColor: '#4f46e5', pointBorderColor: '#fff', pointBorderWidth: 2, fill: true, spanGaps: true });
 
-        // LTV threshold vertical lines
+        // LTV threshold vertical lines for both Estimat and Utfall
         if (propValY > 0) {
           const ltv70Y = propValY * 0.70, ltv50Y = propValY * 0.50;
-          const balLine = hasEstY ? estBalY : actBalY;
-          let cross70Y = null, cross50Y = null;
-          balLine.forEach((v, i) => {
-            if (v !== null) {
-              if (cross70Y === null && v <= ltv70Y) cross70Y = i;
-              if (cross50Y === null && v <= ltv50Y) cross50Y = i;
-            }
-          });
-          if (cross70Y !== null) ltvVerticals.push({ year: cross70Y, color: '#b45309', label: '70% LTV — ' + labels[cross70Y] });
-          if (cross50Y !== null) ltvVerticals.push({ year: cross50Y, color: '#16a34a', label: '50% LTV — ' + labels[cross50Y] });
+          if (hasEstY && showEst) {
+            let cross70Est = null, cross50Est = null;
+            estBalY.forEach((v, i) => {
+              if (v !== null) {
+                if (cross70Est === null && v <= ltv70Y) cross70Est = i;
+                if (cross50Est === null && v <= ltv50Y) cross50Est = i;
+              }
+            });
+            if (cross70Est !== null) ltvVerticals.push({ year: cross70Est, color: '#f97316', dash: [6, 4], label: '70% LTV (Est) — ' + labels[cross70Est] });
+            if (cross50Est !== null) ltvVerticals.push({ year: cross50Est, color: '#ea580c', dash: [6, 4], label: '50% LTV (Est) — ' + labels[cross50Est] });
+          }
+          if (hasActY && showAct) {
+            let cross70Act = null, cross50Act = null;
+            actBalY.forEach((v, i) => {
+              if (v !== null) {
+                if (cross70Act === null && v <= ltv70Y) cross70Act = i;
+                if (cross50Act === null && v <= ltv50Y) cross50Act = i;
+              }
+            });
+            if (cross70Act !== null) ltvVerticals.push({ year: cross70Act, color: '#4f46e5', dash: [3, 3], label: '70% LTV (Utfall) — ' + labels[cross70Act] });
+            if (cross50Act !== null) ltvVerticals.push({ year: cross50Act, color: '#16a34a', dash: [3, 3], label: '50% LTV (Utfall) — ' + labels[cross50Act] });
+          }
         }
 
       } else if (chartViewMode === 'loan' && hasLoans) {
@@ -2979,23 +3022,27 @@
             const ctx2 = chart.ctx;
             const xAxis = chart.scales.x;
             const yAxis = chart.scales.y;
+            const slotCounts = {};
             ltvVerticals.forEach(v => {
               const xPos = xAxis.getPixelForValue(v.year); // works as index for category scale
               if (xPos === undefined || isNaN(xPos)) return;
+              const slotIdx = slotCounts[v.year] || 0;
+              slotCounts[v.year] = slotIdx + 1;
+              const xOffset = slotIdx * 3;
               ctx2.save();
               ctx2.beginPath();
-              ctx2.moveTo(xPos, yAxis.top);
-              ctx2.lineTo(xPos, yAxis.bottom);
+              ctx2.moveTo(xPos + xOffset, yAxis.top);
+              ctx2.lineTo(xPos + xOffset, yAxis.bottom);
               ctx2.strokeStyle = v.color;
               ctx2.lineWidth = 2;
-              ctx2.setLineDash([5, 4]);
+              ctx2.setLineDash(v.dash || [5, 4]);
               ctx2.stroke();
               ctx2.setLineDash([]);
-              // Label at top
+              // Label at top (staggered vertically if multiple lines share the same x index)
               ctx2.font = '600 10px sans-serif';
               ctx2.fillStyle = v.color;
               ctx2.textAlign = 'center';
-              ctx2.fillText(v.label, xPos, yAxis.top + 12);
+              ctx2.fillText(v.label, xPos, yAxis.top + 12 + slotIdx * 14);
               ctx2.restore();
             });
           }
