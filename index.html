@@ -1650,25 +1650,15 @@
         <div id="loanLineChartArea" style="display:none;">
           <div
             style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-            <div id="loanLineLegend" style="display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);">
+            <div id="loanLineLegend" style="display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted);">
             </div>
-            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-              <div class="toggle-row" style="gap:4px;">
-                <button id="btn-series-all" class="tbtn active" style="font-size:11px;padding:4px 10px;"
-                  onclick="setChartSeries('all')">Alla</button>
-                <button id="btn-series-est" class="tbtn" style="font-size:11px;padding:4px 10px;"
-                  onclick="setChartSeries('est')">Estimat</button>
-                <button id="btn-series-act" class="tbtn" style="font-size:11px;padding:4px 10px;"
-                  onclick="setChartSeries('act')">Utfall</button>
-              </div>
-              <div class="toggle-row" style="gap:4px;">
-                <button id="btn-chart-months" class="tbtn" style="font-size:11px;padding:4px 10px;"
-                  onclick="setChartView('months')">Månader</button>
-                <button id="btn-chart-years" class="tbtn active" style="font-size:11px;padding:4px 10px;"
-                  onclick="setChartView('years')">År</button>
-                <button id="btn-chart-loan" class="tbtn" style="font-size:11px;padding:4px 10px;"
-                  onclick="setChartView('loan')">Låneutveckling</button>
-              </div>
+            <div class="toggle-row" style="gap:4px;">
+              <button id="btn-chart-months" class="tbtn" style="font-size:11px;padding:4px 10px;"
+                onclick="setChartView('months')">Månader</button>
+              <button id="btn-chart-years" class="tbtn active" style="font-size:11px;padding:4px 10px;"
+                onclick="setChartView('years')">År</button>
+              <button id="btn-chart-loan" class="tbtn" style="font-size:11px;padding:4px 10px;"
+                onclick="setChartView('loan')">Låneutveckling</button>
             </div>
           </div>
           <div style="position:relative;height:320px;"><canvas id="loanLineChart"></canvas></div>
@@ -2803,14 +2793,10 @@
     function renderBigChart() { renderLoanLineChart(); }
 
     let chartViewMode = 'years'; // 'months' | 'years' | 'loan'
-    let chartSeriesFilter = 'all'; // 'all' | 'est' | 'act'
+    let chartSeriesHidden = { est: false, act: false };
 
-    function setChartSeries(mode) {
-      chartSeriesFilter = mode;
-      ['all', 'est', 'act'].forEach(m => {
-        const el = document.getElementById('btn-series-' + m);
-        if (el) el.classList.toggle('active', m === mode);
-      });
+    function toggleChartSeries(key) {
+      chartSeriesHidden[key] = !chartSeriesHidden[key];
       renderLoanLineChart();
     }
 
@@ -2844,15 +2830,12 @@
         const btn = document.getElementById('btn-chart-' + m);
         if (btn) btn.classList.toggle('active', m === chartViewMode);
       });
-      ['all', 'est', 'act'].forEach(m => {
-        const btn = document.getElementById('btn-series-' + m);
-        if (btn) btn.classList.toggle('active', m === chartSeriesFilter);
-      });
 
-      const showEst = chartSeriesFilter === 'all' || chartSeriesFilter === 'est';
-      const showAct = chartSeriesFilter === 'all' || chartSeriesFilter === 'act';
+      const showEst = !chartSeriesHidden.est;
+      const showAct = !chartSeriesHidden.act;
 
       const datasets = [];
+      const legendItems = [];
       const ltvVerticals = [];
       let labels = [];
 
@@ -2878,8 +2861,14 @@
           }
         });
 
-        if (hasEst && showEst) datasets.push({ label: 'Estimerat saldo', data: estBal, borderColor: '#f97316', backgroundColor: 'transparent', borderWidth: 2, borderDash: [6, 4], tension: 0.3, pointRadius: 2, spanGaps: true });
-        if (hasAct && showAct) datasets.push({ label: 'Faktiskt saldo', data: actBal, borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,0.08)', borderWidth: 2, tension: 0.3, pointRadius: 2, fill: true, spanGaps: true });
+        if (hasEst) {
+          legendItems.push({ key: 'est', label: 'Estimerat saldo', borderColor: '#f97316', borderDash: true, hidden: !showEst });
+          if (showEst) datasets.push({ label: 'Estimerat saldo', data: estBal, borderColor: '#f97316', backgroundColor: 'transparent', borderWidth: 2, borderDash: [6, 4], tension: 0.3, pointRadius: 2, spanGaps: true });
+        }
+        if (hasAct) {
+          legendItems.push({ key: 'act', label: 'Faktiskt saldo', borderColor: '#4f46e5', borderDash: false, hidden: !showAct });
+          if (showAct) datasets.push({ label: 'Faktiskt saldo', data: actBal, borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,0.08)', borderWidth: 2, tension: 0.3, pointRadius: 2, fill: true, spanGaps: true });
+        }
 
         // Vertical LTV lines for both Estimat and Utfall
         const totalPV = loans.reduce((s, l) => s + (l.currentPropertyValue || l.propertyValue || 0), 0);
@@ -2932,8 +2921,14 @@
           actBalY.push(startBalY > 0 ? runActY : null);
         });
 
-        if (hasEstY && showEst) datasets.push({ label: 'Estimerat saldo', data: estBalY, borderColor: '#f97316', backgroundColor: 'transparent', borderWidth: 2, borderDash: [6, 4], tension: 0.3, pointRadius: 5, pointBackgroundColor: '#f97316', pointBorderColor: '#fff', pointBorderWidth: 2, spanGaps: true });
-        if (hasActY && showAct) datasets.push({ label: 'Faktiskt saldo', data: actBalY, borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,0.08)', borderWidth: 2, tension: 0.3, pointRadius: 5, pointBackgroundColor: '#4f46e5', pointBorderColor: '#fff', pointBorderWidth: 2, fill: true, spanGaps: true });
+        if (hasEstY) {
+          legendItems.push({ key: 'est', label: 'Estimerat saldo', borderColor: '#f97316', borderDash: true, hidden: !showEst });
+          if (showEst) datasets.push({ label: 'Estimerat saldo', data: estBalY, borderColor: '#f97316', backgroundColor: 'transparent', borderWidth: 2, borderDash: [6, 4], tension: 0.3, pointRadius: 5, pointBackgroundColor: '#f97316', pointBorderColor: '#fff', pointBorderWidth: 2, spanGaps: true });
+        }
+        if (hasActY) {
+          legendItems.push({ key: 'act', label: 'Faktiskt saldo', borderColor: '#4f46e5', borderDash: false, hidden: !showAct });
+          if (showAct) datasets.push({ label: 'Faktiskt saldo', data: actBalY, borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,0.08)', borderWidth: 2, tension: 0.3, pointRadius: 5, pointBackgroundColor: '#4f46e5', pointBorderColor: '#fff', pointBorderWidth: 2, fill: true, spanGaps: true });
+        }
 
         // LTV threshold vertical lines for both Estimat and Utfall
         if (propValY > 0) {
@@ -2993,19 +2988,26 @@
       }
 
       if (datasets.length === 0) {
-        // In years mode with data but all zeros — still show chart with year labels
-        if (chartViewMode === 'years' && hasYearData && labels.length > 0) {
-          datasets.push({ label: 'Estimat (inga värden)', data: labels.map(() => null), borderColor: '#f97316', backgroundColor: 'transparent', borderWidth: 1, borderDash: [4, 4], pointRadius: 0, spanGaps: false });
+        if ((chartViewMode === 'years' || chartViewMode === 'months') && hasYearData && labels.length > 0) {
+          datasets.push({ label: 'Saldo (dolt)', data: labels.map(() => null), borderColor: 'transparent', backgroundColor: 'transparent', borderWidth: 0, pointRadius: 0, spanGaps: false });
         } else {
           emptyEl.style.display = 'block'; areaEl.style.display = 'none'; return;
         }
       }
 
-      legEl.innerHTML = datasets.map(ds =>
-        '<span style="display:flex;align-items:center;gap:5px;">' +
-        '<span style="width:20px;height:2px;background:' + ds.borderColor + ';' + (ds.borderDash ? 'border-top:2px dashed ' + ds.borderColor + ';background:transparent;' : '') + 'display:inline-block;"></span>' +
-        ds.label + '</span>'
-      ).join('');
+      if (legendItems.length > 0) {
+        legEl.innerHTML = legendItems.map(item =>
+          '<span onclick="toggleChartSeries(\'' + item.key + '\')" title="Klicka för att visa/dölja linje och LTV-markeringar" style="display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;padding:2px 6px;border-radius:6px;transition:opacity .15s;' + (item.hidden ? 'opacity:0.4;text-decoration:line-through;' : '') + '">' +
+          '<span style="width:20px;height:2px;background:' + item.borderColor + ';' + (item.borderDash ? 'border-top:2px dashed ' + item.borderColor + ';background:transparent;' : '') + 'display:inline-block;"></span>' +
+          item.label + '</span>'
+        ).join('');
+      } else {
+        legEl.innerHTML = datasets.map(ds =>
+          '<span style="display:flex;align-items:center;gap:5px;">' +
+          '<span style="width:20px;height:2px;background:' + ds.borderColor + ';' + (ds.borderDash ? 'border-top:2px dashed ' + ds.borderColor + ';background:transparent;' : '') + 'display:inline-block;"></span>' +
+          ds.label + '</span>'
+        ).join('');
+      }
 
       if (loanLineChartInstance) { loanLineChartInstance.destroy(); loanLineChartInstance = null; }
       const ctx = document.getElementById('loanLineChart');
