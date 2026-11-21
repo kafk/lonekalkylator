@@ -4994,9 +4994,9 @@
       const propA = totalPropVal * pctA / 100;
       const propB = totalPropVal * pctB / 100;
       const ltvCol = v => v <= 50 ? '#16a34a' : v <= 70 ? '#b45309' : '#dc2626';
-      const cell = (v, color, small) => '<td style="padding:' + (small ? '5px 8px' : '8px 10px') + ';text-align:right;font-family:monospace;font-size:' + (small ? '11' : '12') + 'px;' + (color ? 'color:' + color + ';' : '') + '">' + fmt(v) + '</td>';
-      const cellB = (v, small) => '<td style="padding:' + (small ? '5px 8px' : '8px 10px') + ';text-align:right;font-family:monospace;font-size:' + (small ? '11' : '12') + 'px;font-weight:600;">' + fmt(v) + '</td>';
-      const ltvCell = (v, small) => '<td style="padding:' + (small ? '5px 8px' : '8px 10px') + ';text-align:right;font-family:monospace;font-size:' + (small ? '11' : '12') + 'px;font-weight:700;color:' + ltvCol(v) + ';">' + v.toFixed(1) + '%</td>';
+      const cell = (v, color, small, bLeft) => '<td style="padding:' + (small ? '5px 8px' : '8px 10px') + ';text-align:right;font-family:monospace;font-size:' + (small ? '11' : '12') + 'px;' + (color ? 'color:' + color + ';' : '') + (bLeft ? 'border-left:2px solid ' + bLeft + ';' : '') + '">' + fmt(v) + '</td>';
+      const cellB = (v, small, bLeft) => '<td style="padding:' + (small ? '5px 8px' : '8px 10px') + ';text-align:right;font-family:monospace;font-size:' + (small ? '11' : '12') + 'px;font-weight:600;' + (bLeft ? 'border-left:2px solid ' + bLeft + ';' : '') + '">' + fmt(v) + '</td>';
+      const ltvCell = (v, small, bLeft) => '<td style="padding:' + (small ? '5px 8px' : '8px 10px') + ';text-align:right;font-family:monospace;font-size:' + (small ? '11' : '12') + 'px;font-weight:700;color:' + ltvCol(v) + ';' + (bLeft ? 'border-left:2px solid ' + bLeft + ';' : '') + '">' + v.toFixed(1) + '%</td>';
 
       const makeRow = (label, balance, balA, balB, isStart, prevTotal, loanBreakdown, amortA_mth, amortB_mth) => {
         const ltv = totalPropVal > 0 ? balance / totalPropVal * 100 : 0;
@@ -5017,12 +5017,12 @@
 
         let html = '<tr style="border-bottom:' + (loanBreakdown && loanBreakdown.length ? '1px dashed var(--border)' : '1px solid var(--border)') + ';' + rowBg + '">' +
           '<td style="padding:8px 10px;font-size:12px;font-weight:700;white-space:nowrap;">' + label + (isStart ? ' <span style="font-size:10px;background:rgba(37,99,235,0.1);color:var(--accent2);padding:1px 5px;border-radius:8px;">Nu</span>' : '') + '</td>' +
-          ltvCell(ltv) +
-          ltvCell(ltvA) + '<td style="padding:8px 10px;text-align:right;font-family:monospace;font-size:12px;color:var(--accent2);font-weight:600;">' + fmt(balA) + '</td>' + cell(mA.interest, 'var(--red)') + cell(mA.amort, '') + cellB(mA.total) +
-          ltvCell(ltvB) + '<td style="padding:8px 10px;text-align:right;font-family:monospace;font-size:12px;color:var(--accent3);font-weight:600;">' + fmt(balB) + '</td>' + cell(mB.interest, 'var(--red)') + cell(mB.amort, '') + cellB(mB.total) +
-          cell(mT.interest, 'var(--red)') + cell(mT.amort, '') + cellB(mT.total) +
-          '<td style="padding:8px 10px;text-align:right;font-family:monospace;font-size:12px;color:' + (saving > 1 ? 'var(--accent)' : 'var(--muted)') + ';">' + (saving > 1 ? '−' + fmt(saving) : '—') + '</td>' +
-          '<td style="padding:8px 10px;text-align:right;font-family:monospace;font-size:12px;font-weight:600;">' + fmt(balance) + '</td>' +
+          ltvCell(ltv, false, 'var(--border)') +
+          ltvCell(ltvA, false, 'var(--accent2)') + '<td style="padding:8px 10px;text-align:right;font-family:monospace;font-size:12px;color:var(--accent2);font-weight:600;">' + fmt(balA) + '</td>' + cell(mA.interest, 'var(--red)') + cell(mA.amort, '') + cellB(mA.total) +
+          ltvCell(ltvB, false, 'var(--accent3)') + '<td style="padding:8px 10px;text-align:right;font-family:monospace;font-size:12px;color:var(--accent3);font-weight:600;">' + fmt(balB) + '</td>' + cell(mB.interest, 'var(--red)') + cell(mB.amort, '') + cellB(mB.total) +
+          cell(mT.interest, 'var(--red)', false, '#374151') + cell(mT.amort, '') + cellB(mT.total) +
+          '<td style="padding:8px 10px;text-align:right;font-family:monospace;font-size:12px;border-left:2px solid var(--border);color:' + (saving > 1 ? 'var(--accent)' : 'var(--muted)') + ';">' + (saving > 1 ? '−' + fmt(saving) : '—') + '</td>' +
+          '<td style="padding:8px 10px;text-align:right;font-family:monospace;font-size:12px;font-weight:600;border-left:2px solid var(--border);">' + fmt(balance) + '</td>' +
           '</tr>';
 
         // Per-loan sub-rows
@@ -5035,12 +5035,12 @@
             const lltvT = lb.propV > 0 ? lTot / lb.propV * 100 : 0;
             html += '<tr style="border-bottom:1px solid var(--border);background:var(--surface2);">' +
               '<td style="padding:5px 8px 5px 22px;font-size:11px;color:var(--muted);white-space:nowrap;">↳ ' + lb.name + '</td>' +
-              ltvCell(lltvT, true) +
-              ltvCell(lltvA, true) + '<td style="padding:5px 8px;text-align:right;font-family:monospace;font-size:11px;color:var(--accent2);font-weight:600;">' + fmt(lA) + '</td>' + cell(mlA.interest, 'var(--red)', true) + cell(mlA.amort, '', true) + cellB(mlA.total, true) +
-              ltvCell(lltvB, true) + '<td style="padding:5px 8px;text-align:right;font-family:monospace;font-size:11px;color:var(--accent3);font-weight:600;">' + fmt(lB) + '</td>' + cell(mlB.interest, 'var(--red)', true) + cell(mlB.amort, '', true) + cellB(mlB.total, true) +
-              cell(mlT.interest, 'var(--red)', true) + cell(mlT.amort, '', true) + cellB(mlT.total, true) +
-              '<td></td>' +
-              '<td style="padding:5px 8px;text-align:right;font-family:monospace;font-size:11px;">' + fmt(lTot) + '</td>' +
+              ltvCell(lltvT, true, 'var(--border)') +
+              ltvCell(lltvA, true, 'var(--accent2)') + '<td style="padding:5px 8px;text-align:right;font-family:monospace;font-size:11px;color:var(--accent2);font-weight:600;">' + fmt(lA) + '</td>' + cell(mlA.interest, 'var(--red)', true) + cell(mlA.amort, '', true) + cellB(mlA.total, true) +
+              ltvCell(lltvB, true, 'var(--accent3)') + '<td style="padding:5px 8px;text-align:right;font-family:monospace;font-size:11px;color:var(--accent3);font-weight:600;">' + fmt(lB) + '</td>' + cell(mlB.interest, 'var(--red)', true) + cell(mlB.amort, '', true) + cellB(mlB.total, true) +
+              cell(mlT.interest, 'var(--red)', true, '#374151') + cell(mlT.amort, '', true) + cellB(mlT.total, true) +
+              '<td style="border-left:2px solid var(--border);"></td>' +
+              '<td style="padding:5px 8px;text-align:right;font-family:monospace;font-size:11px;border-left:2px solid var(--border);">' + fmt(lTot) + '</td>' +
               '</tr>';
           });
         }
@@ -5097,20 +5097,20 @@
         '<thead>' +
         '<tr style="border-bottom:1px solid var(--border);">' +
         '<th style="' + th1 + '">Period</th>' +
-        '<th style="' + thTd + '">LTV tot</th>' +
+        '<th style="' + thTd + 'border-left:2px solid var(--border);">LTV tot</th>' +
         sectionHdr(aName + ' (' + pctA + '%)', 'var(--accent2)') +
         sectionHdr(bName + ' (' + pctB + '%)', 'var(--accent3)') +
         '<th colspan="3" style="' + thTd + 'border-left:2px solid #374151;background:rgba(0,0,0,0.02);">Totalt</th>' +
-        '<th style="' + thTd + '">Besparing vs nu</th>' +
+        '<th style="' + thTd + 'border-left:2px solid var(--border);">Besparing vs nu</th>' +
         '<th style="' + thTd + 'border-left:2px solid var(--border);background:rgba(0,0,0,0.02);">Kvar tot</th>' +
         '</tr>' +
         '<tr style="border-bottom:2px solid var(--border);background:var(--surface2);">' +
-        '<th style="' + th1 + '"></th><th style="' + thTd + '"></th>' +
-        '<th style="' + thTd + '">LTV</th><th style="' + thTd + 'color:var(--accent2);">Kvar</th><th style="' + thTd + '">Ränta</th><th style="' + thTd + '">Amort</th><th style="' + thTd + '">Totalt</th>' +
-        '<th style="' + thTd + '">LTV</th><th style="' + thTd + 'color:var(--accent3);">Kvar</th><th style="' + thTd + '">Ränta</th><th style="' + thTd + '">Amort</th><th style="' + thTd + '">Totalt</th>' +
-        '<th style="' + thTd + '">Ränta</th><th style="' + thTd + '">Amort</th><th style="' + thTd + '">Totalt</th>' +
-        '<th style="' + thTd + '"></th>' +
-        '<th style="' + thTd + '">Totalt</th>' +
+        '<th style="' + th1 + '"></th><th style="' + thTd + 'border-left:2px solid var(--border);"></th>' +
+        '<th style="' + thTd + 'border-left:2px solid var(--accent2);">LTV</th><th style="' + thTd + 'color:var(--accent2);">Kvar</th><th style="' + thTd + '">Ränta</th><th style="' + thTd + '">Amort</th><th style="' + thTd + '">Totalt</th>' +
+        '<th style="' + thTd + 'border-left:2px solid var(--accent3);">LTV</th><th style="' + thTd + 'color:var(--accent3);">Kvar</th><th style="' + thTd + '">Ränta</th><th style="' + thTd + '">Amort</th><th style="' + thTd + '">Totalt</th>' +
+        '<th style="' + thTd + 'border-left:2px solid #374151;">Ränta</th><th style="' + thTd + '">Amort</th><th style="' + thTd + '">Totalt</th>' +
+        '<th style="' + thTd + 'border-left:2px solid var(--border);"></th>' +
+        '<th style="' + thTd + 'border-left:2px solid var(--border);">Totalt</th>' +
         '</tr>' +
         '</thead>' +
         '<tbody>' + rows + '</tbody>' +
