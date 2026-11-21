@@ -2957,38 +2957,96 @@
           }
         }
 
-      } else if (chartViewMode === 'loan' && hasLoans) {
-        // 30-year loan amortization projection
-        labels = Array.from({ length: 31 }, (_, y) => 'År ' + y);
-        loans.forEach((l, i) => {
-          if (!l.amount || l.amount === 0) return;
-          const amortKr = l.amount * (l.amortPct || 0) / 100 / 12;
-          const extraKr = (l.extraAmort || 0) + (l._extraA || 0) + (l._extraB || 0);
-          const totalAmort = amortKr + extraKr;
-          if (totalAmort <= 0) return;
-          const data = []; let bal = l.amount;
-          for (let y = 0; y <= 30; y++) { data.push(Math.round(bal)); for (let m = 0; m < 12; m++) { bal = Math.max(0, bal - totalAmort); if (bal === 0) break; } }
-          const col = '#4f46e5';
-          datasets.push({ label: l.type + ' ' + Math.round(l.amount / 1000) + 'k', data, borderColor: col, backgroundColor: col + '15', borderWidth: 2, tension: 0.3, pointRadius: 2, fill: true });
-          // LTV lines
-          if (l.type === 'Bolån' && (l.currentPropertyValue || l.propertyValue) > 0) {
-            const lPV = l.currentPropertyValue || l.propertyValue || 0;
-            const ltv70 = Math.round(lPV * 0.70), ltv50 = Math.round(lPV * 0.50);
-            const amortKr2 = l.amount * (l.amortPct || 0) / 100 / 12;
-            const totalAmort2 = amortKr2 + (l.extraAmort || 0) + (l._extraA || 0) + (l._extraB || 0);
-            let yr70 = null, yr50 = null, bal2 = l.amount;
-            for (let y = 0; y <= 30; y++) { if (yr70 === null && bal2 <= ltv70) yr70 = y; if (yr50 === null && bal2 <= ltv50) yr50 = y; if (yr70 !== null && yr50 !== null) break; for (let m = 0; m < 12; m++) { bal2 = Math.max(0, bal2 - totalAmort2); } }
-            // Store LTV crossover years for vertical lines drawn in plugin
-            if (yr70 !== null) ltvVerticals.push({ year: yr70, color: '#b45309', label: '70% LTV — År ' + yr70 });
-            if (yr50 !== null) ltvVerticals.push({ year: yr50, color: '#16a34a', label: '50% LTV — År ' + yr50 });
-            if (yr70 !== null) datasets.push({ label: '70% LTV — År ' + yr70, data: [], borderColor: '#b45309', backgroundColor: 'transparent', borderWidth: 0, pointRadius: 0 });
-            if (yr50 !== null) datasets.push({ label: '50% LTV — År ' + yr50, data: [], borderColor: '#16a34a', backgroundColor: 'transparent', borderWidth: 0, pointRadius: 0 });
-          }
+      } else if (chartViewMode === 'loan' && (hasLoans || hasYearData)) {
+        // Long-horizon loan amortization projection (50 years) for both Estimat and Utfall
+        const sorted = [...analysYears].sort((a, b) => a.year - b.year);
+        const startYr = sorted.length > 0 ? sorted[0].year : new Date().getFullYear();
+        const horizonYears = 50;
+        labels = ['Start', ...Array.from({ length: horizonYears }, (_, i) => String(startYr + i))];
+
+        const startBal = loans.reduce((s, l) => s + (l.amount || 0), 0);
+        const propVal = loans.reduce((s, l) => s + (l.currentPropertyValue || l.propertyValue || 0), 0);
+        const baseLoanAmortYearly = loans.reduce((s, l) => {
+          if (!l.amount) return s;
+          const mAmort = l.amount * (l.amortPct || 0) / 100 / 12 + (l.extraAmort || 0) + (l._extraA || 0) + (l._extraB || 0);
+          return s + mAmort * 12;
+        }, 0);
+
+        const yearMap = {};
+        let lastEstAnnual = 0;
+        let lastActAnnual = 0;
+        let hasEstData = false;
+        let hasActData = false;
+        sorted.forEach(y => {
+          const estSum = (y.est || []).reduce((s, v) => s + (parseFloat(v) || 0), 0);
+          const actSum = (y.act || []).reduce((s, v) => s + (parseFloat(v) || 0), 0);
+          yearMap[y.year] = { estSum, actSum };
+          if (estSum > 0) { lastEstAnnual = estSum; hasEstData = true; }
+          if (actSum > 0) { lastActAnnual = actSum; hasActData = true; }
         });
+
+        const fallbackEstAnnual = lastEstAnnual > 0 ? lastEstAnnual : (baseLoanAmortYearly > 0 ? baseLoanAmortYearly : lastActAnnual);
+        const fallbackActAnnual = lastActAnnual > 0 ? lastActAnnual : (baseLoanAmortYearly > 0 ? baseLoanAmortYearly : lastEstAnnual);
+
+        const estBalL = [startBal];
+        const actBalL = [startBal];
+        let runEstL = startBal;
+        let runActL = startBal;
+        let curEstRate = fallbackEstAnnual;
+        let curActRate = fallbackActAnnual;
+
+        for (let i = 0; i < horizonYears; i++) {
+          const yr = startYr + i;
+          const yd = yearMap[yr];
+          if (yd && yd.estSum > 0) curEstRate = yd.estSum;
+          if (yd && yd.actSum > 0) curActRate = yd.actSum;
+          runEstL = Math.max(0, runEstL - curEstRate);
+          runActL = Math.max(0, runActL - curActRate);
+          estBalL.push(Math.round(runEstL));
+          actBalL.push(Math.round(runActL));
+        }
+
+        const canShowEst = hasEstData || baseLoanAmortYearly > 0;
+        const canShowAct = hasActData || baseLoanAmortYearly > 0;
+
+        if (canShowEst) {
+          legendItems.push({ key: 'est', label: 'Estimerat saldo', borderColor: '#f97316', borderDash: true, hidden: !showEst });
+          if (showEst) datasets.push({ label: 'Estimerat saldo', data: estBalL, borderColor: '#f97316', backgroundColor: 'transparent', borderWidth: 2, borderDash: [6, 4], tension: 0.3, pointRadius: 2, spanGaps: true });
+        }
+        if (canShowAct) {
+          legendItems.push({ key: 'act', label: 'Faktiskt saldo', borderColor: '#4f46e5', borderDash: false, hidden: !showAct });
+          if (showAct) datasets.push({ label: 'Faktiskt saldo', data: actBalL, borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,0.08)', borderWidth: 2, tension: 0.3, pointRadius: 2, fill: true, spanGaps: true });
+        }
+
+        if (propVal > 0) {
+          const ltv70L = propVal * 0.70, ltv50L = propVal * 0.50;
+          if (canShowEst && showEst) {
+            let cross70Est = null, cross50Est = null;
+            estBalL.forEach((v, idx) => {
+              if (v !== null) {
+                if (cross70Est === null && v <= ltv70L) cross70Est = idx;
+                if (cross50Est === null && v <= ltv50L) cross50Est = idx;
+              }
+            });
+            if (cross70Est !== null) ltvVerticals.push({ year: cross70Est, color: '#f97316', dash: [6, 4], label: '70% LTV (Est) — ' + labels[cross70Est] });
+            if (cross50Est !== null) ltvVerticals.push({ year: cross50Est, color: '#ea580c', dash: [6, 4], label: '50% LTV (Est) — ' + labels[cross50Est] });
+          }
+          if (canShowAct && showAct) {
+            let cross70Act = null, cross50Act = null;
+            actBalL.forEach((v, idx) => {
+              if (v !== null) {
+                if (cross70Act === null && v <= ltv70L) cross70Act = idx;
+                if (cross50Act === null && v <= ltv50L) cross50Act = idx;
+              }
+            });
+            if (cross70Act !== null) ltvVerticals.push({ year: cross70Act, color: '#4f46e5', dash: [3, 3], label: '70% LTV (Utfall) — ' + labels[cross70Act] });
+            if (cross50Act !== null) ltvVerticals.push({ year: cross50Act, color: '#16a34a', dash: [3, 3], label: '50% LTV (Utfall) — ' + labels[cross50Act] });
+          }
+        }
       }
 
       if (datasets.length === 0) {
-        if ((chartViewMode === 'years' || chartViewMode === 'months') && hasYearData && labels.length > 0) {
+        if ((chartViewMode === 'years' || chartViewMode === 'months' || chartViewMode === 'loan') && (hasYearData || hasLoans) && labels.length > 0) {
           datasets.push({ label: 'Saldo (dolt)', data: labels.map(() => null), borderColor: 'transparent', backgroundColor: 'transparent', borderWidth: 0, pointRadius: 0, spanGaps: false });
         } else {
           emptyEl.style.display = 'block'; areaEl.style.display = 'none'; return;
