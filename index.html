@@ -51,7 +51,7 @@
 
     header {
       padding: 48px 24px 32px;
-      max-width: 1266px;
+      max-width: 1720px;
       margin: 0 auto;
     }
 
@@ -91,7 +91,7 @@
     }
 
     .layout {
-      max-width: 1266px;
+      max-width: 1720px;
       margin: 0 auto;
       padding: 0 24px;
       display: grid;
@@ -452,7 +452,7 @@
     }
 
     .nav-inner {
-      max-width: 1266px;
+      max-width: 1720px;
       margin: 0 auto;
       display: flex;
       align-items: center;
@@ -528,7 +528,7 @@
 
     /* ── PAGE 2 ── */
     .p2-layout {
-      max-width: 1266px;
+      max-width: 1720px;
       margin: 0 auto;
       padding: 32px 24px 80px;
     }
@@ -586,18 +586,19 @@
       border-bottom: 2px solid var(--border);
       text-align: right;
       white-space: nowrap;
-      min-width: 44px;
+      min-width: 96px;
     }
 
     .ay-table th:first-child {
       text-align: left;
-      min-width: 58px;
+      min-width: 90px;
     }
 
     .ay-table td {
       padding: 3px;
       border-bottom: 1px solid var(--border);
       text-align: right;
+      white-space: nowrap;
     }
 
     .ay-table td:first-child {
@@ -610,14 +611,14 @@
     }
 
     .ay-table input {
-      width: 42px;
+      width: 92px;
       background: var(--surface2);
       border: 1px solid var(--border);
       border-radius: 5px;
       color: var(--text);
       font-family: 'DM Mono', monospace;
       font-size: 10px;
-      padding: 2px 3px;
+      padding: 3px 5px;
       text-align: right;
       outline: none;
     }
@@ -931,7 +932,7 @@
 
     /* ── LÅN PAGE ── */
     .lan-layout {
-      max-width: 1266px;
+      max-width: 1720px;
       margin: 0 auto;
       padding: 32px 24px 80px;
     }
@@ -4214,62 +4215,80 @@
       renderLoanLineChart();
     }
 
+    function parseAYNum(val) {
+      if (val === null || val === undefined || val === '') return 0;
+      if (typeof val === 'number') return val;
+      const cleaned = String(val).replace(/kr/gi, '').replace(/\s|\u00a0/g, '').replace(',', '.');
+      return parseFloat(cleaned) || 0;
+    }
+
+    function fmtAYKr(val) {
+      const n = parseAYNum(val);
+      return n > 0 ? Math.round(n).toLocaleString('sv-SE') + ' kr' : '—';
+    }
+
+    function fmtAYInput(val) {
+      const n = parseAYNum(val);
+      return n > 0 ? Math.round(n).toLocaleString('sv-SE') + ' kr' : '';
+    }
+
     function updateAY(yr, row, mi, val) {
       const y = analysYears.find(y => y.year === yr);
       if (!y) return;
       const key = row === 0 ? 'estA' : row === 1 ? 'estB' : row === 2 ? 'actA' : 'actB';
-      y[key][mi] = val;
+      const numVal = parseAYNum(val);
+      y[key][mi] = numVal > 0 ? String(Math.round(numVal)) : '';
       // Update combined est/act for backwards compat
-      y.est = y.estA.map((v, i) => { const a = parseFloat(v) || 0, b = parseFloat(y.estB[i]) || 0; return a + b > 0 ? String(a + b) : ''; });
-      y.act = y.actA.map((v, i) => { const a = parseFloat(v) || 0, b = parseFloat(y.actB[i]) || 0; return a + b > 0 ? String(a + b) : ''; });
+      y.est = y.estA.map((v, i) => { const a = parseAYNum(v), b = parseAYNum(y.estB[i]); return a + b > 0 ? String(a + b) : ''; });
+      y.act = y.actA.map((v, i) => { const a = parseAYNum(v), b = parseAYNum(y.actB[i]); return a + b > 0 ? String(a + b) : ''; });
       saveAnalysYears();
 
       // Recalculate totals for display
-      const estASum2 = y.estA.reduce((s, v) => s + (parseFloat(v) || 0), 0);
-      const estBSum2 = y.estB.reduce((s, v) => s + (parseFloat(v) || 0), 0);
-      const actASum2 = y.actA.reduce((s, v) => s + (parseFloat(v) || 0), 0);
-      const actBSum2 = y.actB.reduce((s, v) => s + (parseFloat(v) || 0), 0);
+      const estASum2 = y.estA.reduce((s, v) => s + parseAYNum(v), 0);
+      const estBSum2 = y.estB.reduce((s, v) => s + parseAYNum(v), 0);
+      const actASum2 = y.actA.reduce((s, v) => s + parseAYNum(v), 0);
+      const actBSum2 = y.actB.reduce((s, v) => s + parseAYNum(v), 0);
       const estTotal = estASum2 + estBSum2;
       const actTotal = actASum2 + actBSum2;
       const diffTotal = actTotal - estTotal;
 
       // Update row total cell
-      const rowSum = y[key].reduce((s, v) => s + (parseFloat(v) || 0), 0);
+      const rowSum = y[key].reduce((s, v) => s + parseAYNum(v), 0);
       const rowTotEl = document.getElementById(`ay-row-total-${yr}-${key}`);
       if (rowTotEl) {
-        rowTotEl.textContent = rowSum > 0 ? Math.round(rowSum).toLocaleString('sv-SE') : '—';
+        rowTotEl.textContent = fmtAYKr(rowSum);
       }
 
       // Update monthly column cells for index mi
-      const estColVal = (parseFloat(y.estA[mi]) || 0) + (parseFloat(y.estB[mi]) || 0);
+      const estColVal = parseAYNum(y.estA[mi]) + parseAYNum(y.estB[mi]);
       const estColEl = document.getElementById(`ay-est-total-cell-${yr}-${mi}`);
       if (estColEl) {
-        estColEl.textContent = estColVal > 0 ? Math.round(estColVal).toLocaleString('sv-SE') : '—';
+        estColEl.textContent = fmtAYKr(estColVal);
       }
-      const actColVal = (parseFloat(y.actA[mi]) || 0) + (parseFloat(y.actB[mi]) || 0);
+      const actColVal = parseAYNum(y.actA[mi]) + parseAYNum(y.actB[mi]);
       const actColEl = document.getElementById(`ay-act-total-cell-${yr}-${mi}`);
       if (actColEl) {
-        actColEl.textContent = actColVal > 0 ? Math.round(actColVal).toLocaleString('sv-SE') : '—';
+        actColEl.textContent = fmtAYKr(actColVal);
       }
 
       // Update row total cells for Est Totalt and Utfall Totalt
       const estTotEl = document.getElementById(`ay-est-total-row-${yr}`);
       if (estTotEl) {
-        estTotEl.textContent = estTotal > 0 ? Math.round(estTotal).toLocaleString('sv-SE') : '—';
+        estTotEl.textContent = fmtAYKr(estTotal);
       }
       const actTotEl = document.getElementById(`ay-act-total-row-${yr}`);
       if (actTotEl) {
-        actTotEl.textContent = actTotal > 0 ? Math.round(actTotal).toLocaleString('sv-SE') : '—';
+        actTotEl.textContent = fmtAYKr(actTotal);
       }
 
       // Update header totals
       const hdrEstEl = document.getElementById(`ay-hdr-est-${yr}`);
       if (hdrEstEl) {
-        hdrEstEl.innerHTML = estTotal > 0 ? Math.round(estTotal).toLocaleString('sv-SE') + ' kr' : '—';
+        hdrEstEl.innerHTML = fmtAYKr(estTotal);
       }
       const hdrActEl = document.getElementById(`ay-hdr-act-${yr}`);
       if (hdrActEl) {
-        hdrActEl.innerHTML = actTotal > 0 ? Math.round(actTotal).toLocaleString('sv-SE') + ' kr' : '—';
+        hdrActEl.innerHTML = fmtAYKr(actTotal);
       }
       const hdrDiffEl = document.getElementById(`ay-hdr-diff-${yr}`);
       if (hdrDiffEl) {
@@ -4297,10 +4316,10 @@
         return;
       }
       wrap.innerHTML = analysYears.map(y => {
-        const estASum = y.estA.reduce((s, v) => s + (parseFloat(v) || 0), 0);
-        const estBSum = y.estB.reduce((s, v) => s + (parseFloat(v) || 0), 0);
-        const actASum = y.actA.reduce((s, v) => s + (parseFloat(v) || 0), 0);
-        const actBSum = y.actB.reduce((s, v) => s + (parseFloat(v) || 0), 0);
+        const estASum = y.estA.reduce((s, v) => s + parseAYNum(v), 0);
+        const estBSum = y.estB.reduce((s, v) => s + parseAYNum(v), 0);
+        const actASum = y.actA.reduce((s, v) => s + parseAYNum(v), 0);
+        const actBSum = y.actB.reduce((s, v) => s + parseAYNum(v), 0);
         const estTotal = estASum + estBSum;
         const actTotal = actASum + actBSum;
         const diffTotal = actTotal - estTotal;
@@ -4310,47 +4329,49 @@
 
         const makeRow = (key, label, color, subcolor) => {
           const arr = y[key] || Array(12).fill('');
-          const sum = arr.reduce((s, v) => s + (parseFloat(v) || 0), 0);
+          const sum = arr.reduce((s, v) => s + parseAYNum(v), 0);
+          const rowIdx = ['estA', 'estB', 'actA', 'actB'].indexOf(key);
           const cells = arr.map((v, mi) =>
-            '<td><input type="text" value="' + (v || '') + '" inputmode="numeric" placeholder="—"' +
-            ' oninput="updateAY(' + y.year + ',' + ['estA', 'estB', 'actA', 'actB'].indexOf(key) + ',' + mi + ',this.value)"' +
-            ' onblur="this.value=this.value"></td>'
+            '<td><input type="text" value="' + fmtAYInput(v) + '" inputmode="numeric" placeholder="—"' +
+            ' onfocus="const n=parseAYNum(this.value);this.value=n>0?String(Math.round(n)):\'\';this.select();"' +
+            ' oninput="updateAY(' + y.year + ',' + rowIdx + ',' + mi + ',this.value)"' +
+            ' onblur="this.value=fmtAYInput(this.value)"></td>'
           ).join('');
           return '<tr style="border-bottom:1px solid var(--border);">' +
-            '<td style="padding:3px 5px;font-size:10px;font-weight:700;color:' + color + ';white-space:nowrap;min-width:70px;">' + label + '</td>' +
+            '<td style="padding:3px 5px;font-size:10px;font-weight:700;color:' + color + ';white-space:nowrap;min-width:90px;">' + label + '</td>' +
             cells +
-            '<td id="ay-row-total-' + y.year + '-' + key + '" style="font-family:monospace;font-size:11px;color:' + color + ';font-weight:600;text-align:right;padding:3px 4px;white-space:nowrap;">' + (sum > 0 ? Math.round(sum).toLocaleString('sv-SE') : '—') + '</td>' +
+            '<td id="ay-row-total-' + y.year + '-' + key + '" style="font-family:monospace;font-size:11px;color:' + color + ';font-weight:600;text-align:right;padding:3px 4px;white-space:nowrap;">' + fmtAYKr(sum) + '</td>' +
             '</tr>';
         };
 
         // Total rows
         const estTotCells = AY_MONTHS.map((_, mi) => {
-          const v = (parseFloat(y.estA[mi]) || 0) + (parseFloat(y.estB[mi]) || 0);
-          return '<td id="ay-est-total-cell-' + y.year + '-' + mi + '" style="font-family:monospace;font-size:11px;color:#f97316;font-weight:600;text-align:right;padding:3px 4px;background:rgba(249,115,22,0.04);">' + (v > 0 ? Math.round(v).toLocaleString('sv-SE') : '—') + '</td>';
+          const v = parseAYNum(y.estA[mi]) + parseAYNum(y.estB[mi]);
+          return '<td id="ay-est-total-cell-' + y.year + '-' + mi + '" style="font-family:monospace;font-size:11px;color:#f97316;font-weight:600;text-align:right;padding:3px 4px;background:rgba(249,115,22,0.04);white-space:nowrap;">' + fmtAYKr(v) + '</td>';
         }).join('');
         const actTotCells = AY_MONTHS.map((_, mi) => {
-          const v = (parseFloat(y.actA[mi]) || 0) + (parseFloat(y.actB[mi]) || 0);
-          return '<td id="ay-act-total-cell-' + y.year + '-' + mi + '" style="font-family:monospace;font-size:11px;color:#4f46e5;font-weight:600;text-align:right;padding:3px 4px;background:rgba(79,70,229,0.05);">' + (v > 0 ? Math.round(v).toLocaleString('sv-SE') : '—') + '</td>';
+          const v = parseAYNum(y.actA[mi]) + parseAYNum(y.actB[mi]);
+          return '<td id="ay-act-total-cell-' + y.year + '-' + mi + '" style="font-family:monospace;font-size:11px;color:#4f46e5;font-weight:600;text-align:right;padding:3px 4px;background:rgba(79,70,229,0.05);white-space:nowrap;">' + fmtAYKr(v) + '</td>';
         }).join('');
 
         return '<div class="ay-wrap">' +
           '<div class="ay-header">' +
           '<span class="ay-year-title">' + y.year + '</span>' +
           '<div style="display:flex;gap:12px;align-items:center;font-size:12px;">' +
-          '<span style="color:#f97316;">Est tot: <b id="ay-hdr-est-' + y.year + '">' + (estTotal > 0 ? Math.round(estTotal).toLocaleString('sv-SE') + ' kr' : '—') + '</b></span>' +
-          '<span style="color:#4f46e5;">Utfall tot: <b id="ay-hdr-act-' + y.year + '">' + (actTotal > 0 ? Math.round(actTotal).toLocaleString('sv-SE') + ' kr' : '—') + '</b></span>' +
+          '<span style="color:#f97316;">Est tot: <b id="ay-hdr-est-' + y.year + '">' + fmtAYKr(estTotal) + '</b></span>' +
+          '<span style="color:#4f46e5;">Utfall tot: <b id="ay-hdr-act-' + y.year + '">' + fmtAYKr(actTotal) + '</b></span>' +
           '<span style="color:' + dc + '" id="ay-hdr-diff-wrap-' + y.year + '">Diff: <b id="ay-hdr-diff-' + y.year + '">' + ((estTotal || actTotal) ? (diffTotal >= 0 ? '+' : '') + Math.round(diffTotal).toLocaleString('sv-SE') + ' kr' : '—') + '</b></span>' +
           '<button onclick="removeAnalysYear(' + y.year + ')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0 2px;line-height:1;" data-hov>&times;</button>' +
           '</div>' +
           '</div>' +
           '<div style="overflow-x:auto;">' +
-          '<table class="ay-table"><thead><tr><th style="text-align:left;min-width:70px;">Rad</th>' + thM + '<th>Totalt</th></tr></thead><tbody>' +
+          '<table class="ay-table"><thead><tr><th style="text-align:left;min-width:90px;">Rad</th>' + thM + '<th>Totalt</th></tr></thead><tbody>' +
           makeRow('estA', 'Est ' + nameA, '#f97316', '#f97316') +
           makeRow('estB', 'Est ' + nameB, '#f97316', '#f97316') +
-          '<tr style="border-bottom:2px solid #f97316;background:rgba(249,115,22,0.04);"><td style="padding:3px 5px;font-size:10px;font-weight:700;color:#f97316;white-space:nowrap;">Est Totalt</td>' + estTotCells + '<td id="ay-est-total-row-' + y.year + '" style="font-family:monospace;font-size:11px;color:#f97316;font-weight:700;text-align:right;padding:3px 4px;">' + (estTotal > 0 ? Math.round(estTotal).toLocaleString('sv-SE') : '—') + '</td></tr>' +
+          '<tr style="border-bottom:2px solid #f97316;background:rgba(249,115,22,0.04);"><td style="padding:3px 5px;font-size:10px;font-weight:700;color:#f97316;white-space:nowrap;">Est Totalt</td>' + estTotCells + '<td id="ay-est-total-row-' + y.year + '" style="font-family:monospace;font-size:11px;color:#f97316;font-weight:700;text-align:right;padding:3px 4px;white-space:nowrap;">' + fmtAYKr(estTotal) + '</td></tr>' +
           makeRow('actA', 'Utfall ' + nameA, '#4f46e5', '#4f46e5') +
           makeRow('actB', 'Utfall ' + nameB, '#4f46e5', '#4f46e5') +
-          '<tr style="border-bottom:2px solid #4f46e5;background:rgba(79,70,229,0.05);"><td style="padding:3px 5px;font-size:10px;font-weight:700;color:#4f46e5;white-space:nowrap;">Utfall Totalt</td>' + actTotCells + '<td id="ay-act-total-row-' + y.year + '" style="font-family:monospace;font-size:11px;color:#4f46e5;font-weight:700;text-align:right;padding:3px 4px;">' + (actTotal > 0 ? Math.round(actTotal).toLocaleString('sv-SE') : '—') + '</td></tr>' +
+          '<tr style="border-bottom:2px solid #4f46e5;background:rgba(79,70,229,0.05);"><td style="padding:3px 5px;font-size:10px;font-weight:700;color:#4f46e5;white-space:nowrap;">Utfall Totalt</td>' + actTotCells + '<td id="ay-act-total-row-' + y.year + '" style="font-family:monospace;font-size:11px;color:#4f46e5;font-weight:700;text-align:right;padding:3px 4px;white-space:nowrap;">' + fmtAYKr(actTotal) + '</td></tr>' +
           '</tbody></table>' +
           '</div>' +
           '</div>';
