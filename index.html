@@ -2871,16 +2871,18 @@
         }
 
         // Vertical LTV lines for both Estimat and Utfall
-        const totalPV = loans.reduce((s, l) => s + (l.currentPropertyValue || l.propertyValue || 0), 0);
-        if (totalPV > 0) {
-          const ltv70val = totalPV * 0.70;
-          const ltv50val = totalPV * 0.50;
+        const anyPropVal = loans.some(l => (l.currentPropertyValue || l.propertyValue || 0) > 0);
+        if (anyPropVal) {
           if (hasEst && showEst) {
             let cross70Est = null, cross50Est = null;
             estBal.forEach((v, i) => {
               if (v !== null) {
-                if (cross70Est === null && v <= ltv70val) cross70Est = i;
-                if (cross50Est === null && v <= ltv50val) cross50Est = i;
+                const yr = sorted[Math.floor(i / 12)].year;
+                const pvAtM = getTotalEffectivePropertyValue(loans, yr);
+                if (pvAtM > 0) {
+                  if (cross70Est === null && v <= pvAtM * 0.70) cross70Est = i;
+                  if (cross50Est === null && v <= pvAtM * 0.50) cross50Est = i;
+                }
               }
             });
             if (cross70Est !== null) ltvVerticals.push({ year: cross70Est, color: '#f97316', dash: [6, 4], label: '70% LTV (Est) — ' + labels[cross70Est] });
@@ -2890,8 +2892,12 @@
             let cross70Act = null, cross50Act = null;
             actBal.forEach((v, i) => {
               if (v !== null) {
-                if (cross70Act === null && v <= ltv70val) cross70Act = i;
-                if (cross50Act === null && v <= ltv50val) cross50Act = i;
+                const yr = sorted[Math.floor(i / 12)].year;
+                const pvAtM = getTotalEffectivePropertyValue(loans, yr);
+                if (pvAtM > 0) {
+                  if (cross70Act === null && v <= pvAtM * 0.70) cross70Act = i;
+                  if (cross50Act === null && v <= pvAtM * 0.50) cross50Act = i;
+                }
               }
             });
             if (cross70Act !== null) ltvVerticals.push({ year: cross70Act, color: '#4f46e5', dash: [3, 3], label: '70% LTV (Utfall) — ' + labels[cross70Act] });
@@ -2932,13 +2938,17 @@
 
         // LTV threshold vertical lines for both Estimat and Utfall
         if (propValY > 0) {
-          const ltv70Y = propValY * 0.70, ltv50Y = propValY * 0.50;
+          const startYrForY = sorted.length > 0 ? sorted[0].year : new Date().getFullYear();
           if (hasEstY && showEst) {
             let cross70Est = null, cross50Est = null;
             estBalY.forEach((v, i) => {
               if (v !== null) {
-                if (cross70Est === null && v <= ltv70Y) cross70Est = i;
-                if (cross50Est === null && v <= ltv50Y) cross50Est = i;
+                const yr = i === 0 ? startYrForY : sorted[i - 1].year;
+                const pvAtY = getTotalEffectivePropertyValue(loans, yr);
+                if (pvAtY > 0) {
+                  if (cross70Est === null && v <= pvAtY * 0.70) cross70Est = i;
+                  if (cross50Est === null && v <= pvAtY * 0.50) cross50Est = i;
+                }
               }
             });
             if (cross70Est !== null) ltvVerticals.push({ year: cross70Est, color: '#f97316', dash: [6, 4], label: '70% LTV (Est) — ' + labels[cross70Est] });
@@ -2948,8 +2958,12 @@
             let cross70Act = null, cross50Act = null;
             actBalY.forEach((v, i) => {
               if (v !== null) {
-                if (cross70Act === null && v <= ltv70Y) cross70Act = i;
-                if (cross50Act === null && v <= ltv50Y) cross50Act = i;
+                const yr = i === 0 ? startYrForY : sorted[i - 1].year;
+                const pvAtY = getTotalEffectivePropertyValue(loans, yr);
+                if (pvAtY > 0) {
+                  if (cross70Act === null && v <= pvAtY * 0.70) cross70Act = i;
+                  if (cross50Act === null && v <= pvAtY * 0.50) cross50Act = i;
+                }
               }
             });
             if (cross70Act !== null) ltvVerticals.push({ year: cross70Act, color: '#4f46e5', dash: [3, 3], label: '70% LTV (Utfall) — ' + labels[cross70Act] });
@@ -3019,13 +3033,16 @@
         }
 
         if (propVal > 0) {
-          const ltv70L = propVal * 0.70, ltv50L = propVal * 0.50;
           if (canShowEst && showEst) {
             let cross70Est = null, cross50Est = null;
             estBalL.forEach((v, idx) => {
               if (v !== null) {
-                if (cross70Est === null && v <= ltv70L) cross70Est = idx;
-                if (cross50Est === null && v <= ltv50L) cross50Est = idx;
+                const yr = idx === 0 ? startYr : startYr + idx - 1;
+                const pvAtL = getTotalEffectivePropertyValue(loans, yr);
+                if (pvAtL > 0) {
+                  if (cross70Est === null && v <= pvAtL * 0.70) cross70Est = idx;
+                  if (cross50Est === null && v <= pvAtL * 0.50) cross50Est = idx;
+                }
               }
             });
             if (cross70Est !== null) ltvVerticals.push({ year: cross70Est, color: '#f97316', dash: [6, 4], label: '70% LTV (Est) — ' + labels[cross70Est] });
@@ -3035,8 +3052,12 @@
             let cross70Act = null, cross50Act = null;
             actBalL.forEach((v, idx) => {
               if (v !== null) {
-                if (cross70Act === null && v <= ltv70L) cross70Act = idx;
-                if (cross50Act === null && v <= ltv50L) cross50Act = idx;
+                const yr = idx === 0 ? startYr : startYr + idx - 1;
+                const pvAtL = getTotalEffectivePropertyValue(loans, yr);
+                if (pvAtL > 0) {
+                  if (cross70Act === null && v <= pvAtL * 0.70) cross70Act = idx;
+                  if (cross50Act === null && v <= pvAtL * 0.50) cross50Act = idx;
+                }
               }
             });
             if (cross70Act !== null) ltvVerticals.push({ year: cross70Act, color: '#4f46e5', dash: [3, 3], label: '70% LTV (Utfall) — ' + labels[cross70Act] });
@@ -3125,6 +3146,12 @@
       if (l.currentPropertyValue === undefined) {
         l.currentPropertyValue = l.propertyValue || 3000000;
       }
+      if (l.isNewBuild === undefined) {
+        l.isNewBuild = false;
+      }
+      if (!l.startYear) {
+        l.startYear = new Date().getFullYear();
+      }
     });
     var _pocketPeriod = localStorage.getItem('pocket_period') || "month";
     let loanIdCounter = loans.length ? Math.max(...loans.map(l => l.id)) + 1 : 1;
@@ -3132,6 +3159,20 @@
     loans.forEach(l => { l._extraA = 0; l._extraB = 0; });
 
     const LOAN_TYPES = ['Bolån', 'Billån', 'Privatlån', 'Företagslån', 'Övrigt'];
+
+    function getEffectivePropertyValue(l, evalYear) {
+      const pv = l.propertyValue || 0;
+      const cpv = l.currentPropertyValue || pv || 0;
+      if (!l.isNewBuild) return cpv;
+      const sy = parseInt(l.startYear) || new Date().getFullYear();
+      const yr = evalYear !== undefined && evalYear !== null ? parseInt(evalYear) : new Date().getFullYear();
+      // First 5 years from purchase year: locked to Värde vid köp (propertyValue), after 5 years switches to Nuvarande värde
+      return (yr - sy) < 5 ? (pv || cpv) : cpv;
+    }
+
+    function getTotalEffectivePropertyValue(loanList, evalYear) {
+      return loanList.reduce((s, l) => s + getEffectivePropertyValue(l, evalYear), 0);
+    }
 
     function saveLoans() { localStorage.setItem('ab_loans', JSON.stringify(loans)); }
 
@@ -3144,7 +3185,8 @@
       const loan = {
         id: loanIdCounter++, type: 'Bolån',
         amount: 2000000, rate: 4.5, amortPct: 2.0, extraAmort: 0, rent: 0,
-        propertyValue: 3000000, currentPropertyValue: 3000000, startYear: new Date().getFullYear()
+        propertyValue: 3000000, currentPropertyValue: 3000000,
+        isNewBuild: false, startYear: new Date().getFullYear()
       };
       loans.push(loan);
       saveLoans();
@@ -3161,10 +3203,16 @@
       const l = loans.find(l => l.id === id);
       if (!l) return;
       if (field === 'amortPct') l.amortPct = parseFloat(value) || 0;
+      else if (field === 'isNewBuild') l.isNewBuild = Boolean(value);
+      else if (field === 'startYear') l.startYear = parseInt(value) || new Date().getFullYear();
       else if (['amount', 'extraAmort', 'propertyValue', 'currentPropertyValue', 'rent'].includes(field)) l[field] = parseFloat(String(value).replace(/[\s\u00a0kr]/gi, '')) || 0;
       else if (field === 'rate') l[field] = parseFloat(value) || 0;
       else l[field] = value;
       saveLoans();
+      if (field === 'isNewBuild' || field === 'type') {
+        renderLoanPage();
+        return;
+      }
       // Re-render results section of this card without losing focus
       const cardEl = document.getElementById('lcard-' + id);
       if (cardEl) {
@@ -3173,11 +3221,15 @@
           const m = loanMonthly(l);
           const yLeft = loanYearsLeft(l);
           const yStr = isFinite(yLeft) ? (yLeft < 1 ? Math.ceil(yLeft * 12) + ' mån' : yLeft.toFixed(1) + ' år') : '∞';
-          const pv = l.currentPropertyValue || l.propertyValue || 0;
+          const curYr = new Date().getFullYear();
+          const pv = getEffectivePropertyValue(l, curYr);
           const ltv = pv > 0 ? (l.amount / pv * 100).toFixed(1) : null;
           const equity = pv > 0 ? pv - l.amount : null;
           const ltvColor = ltv > 85 ? 'var(--red)' : ltv > 70 ? 'var(--warning)' : 'var(--accent)';
           const showProp = l.type === 'Bolån';
+          const sy = parseInt(l.startYear) || curYr;
+          const nbLocked = l.isNewBuild && (curYr - sy) < 5;
+          const nbNote = l.isNewBuild ? (nbLocked ? `Nybygge: baseras på värde vid köp t.o.m. ${sy + 4} (nuvarande värde från ${sy + 5})` : `Nybygge (>5 år): baseras på nuvarande värde`) : '';
           resultsEl.innerHTML = `
           <div class="lr"><span class="lrl">Räntekostnad / mån</span><span class="lrv" style="color:var(--red)">${Math.round(m.interest).toLocaleString('sv-SE')} kr</span></div>
           <div class="lr"><span class="lrl">Räntekostnad / år</span><span class="lrv" style="color:var(--red)">${Math.round(m.interest * 12).toLocaleString('sv-SE')} kr</span></div>
@@ -3186,10 +3238,10 @@
           <div class="lr" style="background:rgba(180,83,9,0.05);border-color:var(--warning)"><span class="lrl">Total / mån</span><span class="lrv" style="color:var(--warning);font-weight:600">${Math.round(m.total).toLocaleString('sv-SE')} kr</span></div>
           <div class="lr"><span class="lrl">Återstående tid</span><span class="lrv">${yStr}</span></div>
           ${showProp && ltv ? `
-          <div class="lr"><span class="lrl">Belåningsgrad (LTV)</span><span class="lrv" style="color:${ltvColor}">${ltv}%</span></div>
+          <div class="lr"><span class="lrl">Belåningsgrad (LTV)${nbNote ? ` <span style="font-size:10px;color:var(--muted);">(${nbNote})</span>` : ''}</span><span class="lrv" style="color:${ltvColor}">${ltv}%</span></div>
           <div class="lr"><span class="lrl">Eget kapital</span><span class="lrv" style="color:var(--accent)">${Math.round(equity).toLocaleString('sv-SE')} kr</span></div>
-          ${parseFloat(ltv) > 75 ? `<div class="lr" style="background:rgba(180,83,9,0.04);border-color:rgba(180,83,9,0.3)"><span class="lrl">Tid till 75% belåning</span><span class="lrv" style="color:var(--warning)">${fmtMonths(monthsToLTV(l.amount, l.rate, m.amort, (l.extraAmort || 0) + (l._extraA || 0) + (l._extraB || 0), pv, 75))}</span></div>` : ''}
-          ${parseFloat(ltv) > 50 ? `<div class="lr" style="background:rgba(22,163,74,0.04);border-color:rgba(22,163,74,0.3)"><span class="lrl">Tid till 50% belåning</span><span class="lrv" style="color:var(--accent)">${fmtMonths(monthsToLTV(l.amount, l.rate, m.amort, (l.extraAmort || 0) + (l._extraA || 0) + (l._extraB || 0), pv, 50))}</span></div>` : ''}
+          ${parseFloat(ltv) > 75 ? `<div class="lr" style="background:rgba(180,83,9,0.04);border-color:rgba(180,83,9,0.3)"><span class="lrl">Tid till 75% belåning</span><span class="lrv" style="color:var(--warning)">${fmtMonths(monthsToLTVLoan(l, 75))}</span></div>` : ''}
+          ${parseFloat(ltv) > 50 ? `<div class="lr" style="background:rgba(22,163,74,0.04);border-color:rgba(22,163,74,0.3)"><span class="lrl">Tid till 50% belåning</span><span class="lrv" style="color:var(--accent)">${fmtMonths(monthsToLTVLoan(l, 50))}</span></div>` : ''}
         ` : ''}
         `;
         }
@@ -3201,6 +3253,28 @@
       calcExtra();
       calcSplit();
       updateSplitSelects();
+    }
+
+    function monthsToLTVLoan(l, targetLtvPct) {
+      const m = loanMonthly(l);
+      const extraAmortKr = (l.extraAmort || 0) + (l._extraA || 0) + (l._extraB || 0);
+      const totalAmort = m.amort + extraAmortKr;
+      const curYr = new Date().getFullYear();
+      const pvNow = getEffectivePropertyValue(l, curYr);
+      if (!pvNow || pvNow <= 0) return null;
+      if (l.amount <= pvNow * targetLtvPct / 100) return 0;
+      if (totalAmort <= 0 && !l.isNewBuild) return null;
+      let remaining = l.amount;
+      let months = 0;
+      while (months < 1200) {
+        remaining = Math.max(0, remaining - totalAmort);
+        months++;
+        const yrAtMonth = curYr + Math.floor(months / 12);
+        const effPV = getEffectivePropertyValue(l, yrAtMonth);
+        if (remaining <= effPV * targetLtvPct / 100) return months;
+        if (totalAmort <= 0 && months >= 72) break;
+      }
+      return null;
     }
 
     function monthsToLTV(amount, rate, amortKr, extraAmortKr, propertyValue, targetLtvPct) {
@@ -3264,10 +3338,15 @@
       const typeOpts = LOAN_TYPES.map(t => `<option${t === l.type ? ' selected' : ''}>${t}</option>`).join('');
       const pv = l.propertyValue || 0;
       const cpv = l.currentPropertyValue || l.propertyValue || 0;
-      const ltv = cpv > 0 ? (l.amount / cpv * 100).toFixed(1) : null;
-      const equity = cpv > 0 ? cpv - l.amount : null;
+      const curYr = new Date().getFullYear();
+      const effPv = getEffectivePropertyValue(l, curYr);
+      const ltv = effPv > 0 ? (l.amount / effPv * 100).toFixed(1) : null;
+      const equity = effPv > 0 ? effPv - l.amount : null;
       const ltvColor = ltv > 85 ? 'var(--red)' : ltv > 70 ? 'var(--warning)' : 'var(--accent)';
       const showProp = l.type === 'Bolån';
+      const sy = parseInt(l.startYear) || curYr;
+      const nbLocked = l.isNewBuild && (curYr - sy) < 5;
+      const nbNote = l.isNewBuild ? (nbLocked ? `Nybygge: baseras på värde vid köp t.o.m. ${sy + 4} (nuvarande värde från ${sy + 5})` : `Nybygge (>5 år): baseras på nuvarande värde`) : '';
       return `<div class="loan-card" id="lcard-${l.id}">
       <div class="loan-card-header">
         <span class="loan-type-badge">${l.type}</span>
@@ -3320,6 +3399,21 @@
             onkeydown="if(event.key==='Enter'){fmtLoanInput(this);this.blur();}"
             onblur="fmtLoanInput(this)">
         </div>
+        ${showProp ? `<div class="lf" style="display:flex;flex-direction:column;justify-content:flex-end;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text);font-weight:500;padding:8px 10px;background:var(--surface2);border:1px solid ${l.isNewBuild ? 'var(--accent2)' : 'var(--border)'};border-radius:7px;margin-bottom:0;">
+            <input type="checkbox" ${l.isNewBuild ? 'checked' : ''} onchange="updateLoan(${l.id},'isNewBuild',this.checked)" style="width:16px;height:16px;accent-color:var(--accent2);cursor:pointer;margin:0;">
+            <span>Nybygge (5-årsregel)</span>
+          </label>
+        </div>
+        ${l.isNewBuild ? `<div class="lf" style="grid-column:1 / -1;background:rgba(79,70,229,0.04);border:1px solid rgba(79,70,229,0.2);border-radius:7px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+          <div style="font-size:11px;color:var(--muted);line-height:1.4;">
+            <strong style="color:var(--accent2);">Nybygge aktivt:</strong> Första 5 åren (${sy}–${sy + 4}) beräknas LTV på <b>Värde vid köp</b> (${pv.toLocaleString('sv-SE')} kr). Från år <b>${sy + 5}</b> går LTV över till <b>Nuvarande värde</b> (${cpv.toLocaleString('sv-SE')} kr).
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <label style="margin:0;font-size:11px;white-space:nowrap;">Köpår:</label>
+            <input type="number" value="${sy}" min="2000" max="2100" step="1" style="width:82px;padding:5px 8px;font-size:12px;" oninput="updateLoan(${l.id},'startYear',this.value)">
+          </div>
+        </div>` : ''}` : ''}
       </div>
       <div class="loan-results">
         <div class="lr"><span class="lrl">Räntekostnad / mån</span><span class="lrv" style="color:var(--red)">${Math.round(m.interest).toLocaleString('sv-SE')} kr</span></div>
@@ -3329,10 +3423,10 @@
         <div class="lr" style="background:rgba(180,83,9,0.05);border-color:var(--warning)"><span class="lrl">Total / mån</span><span class="lrv" style="color:var(--warning);font-weight:600">${Math.round(m.total).toLocaleString('sv-SE')} kr</span></div>
         <div class="lr"><span class="lrl">Återstående tid</span><span class="lrv">${yStr}</span></div>
         ${showProp && ltv ? `
-          <div class="lr"><span class="lrl">Belåningsgrad (LTV)</span><span class="lrv" style="color:${ltvColor}">${ltv}%</span></div>
+          <div class="lr"><span class="lrl">Belåningsgrad (LTV)${nbNote ? ` <span style="font-size:10px;color:var(--muted);">(${nbNote})</span>` : ''}</span><span class="lrv" style="color:${ltvColor}">${ltv}%</span></div>
           <div class="lr"><span class="lrl">Eget kapital</span><span class="lrv" style="color:var(--accent)">${Math.round(equity).toLocaleString('sv-SE')} kr</span></div>
-          ${parseFloat(ltv) > 75 ? `<div class="lr" style="background:rgba(180,83,9,0.04);border-color:rgba(180,83,9,0.3)"><span class="lrl">Tid till 75% belåning</span><span class="lrv" style="color:var(--warning)">${fmtMonths(monthsToLTV(l.amount, l.rate, m.amort, (l.extraAmort || 0) + (l._extraA || 0) + (l._extraB || 0), cpv, 75))}</span></div>` : ''}
-          ${parseFloat(ltv) > 50 ? `<div class="lr" style="background:rgba(22,163,74,0.04);border-color:rgba(22,163,74,0.3)"><span class="lrl">Tid till 50% belåning</span><span class="lrv" style="color:var(--accent)">${fmtMonths(monthsToLTV(l.amount, l.rate, m.amort, (l.extraAmort || 0) + (l._extraA || 0) + (l._extraB || 0), cpv, 50))}</span></div>` : ''}
+          ${parseFloat(ltv) > 75 ? `<div class="lr" style="background:rgba(180,83,9,0.04);border-color:rgba(180,83,9,0.3)"><span class="lrl">Tid till 75% belåning</span><span class="lrv" style="color:var(--warning)">${fmtMonths(monthsToLTVLoan(l, 75))}</span></div>` : ''}
+          ${parseFloat(ltv) > 50 ? `<div class="lr" style="background:rgba(22,163,74,0.04);border-color:rgba(22,163,74,0.3)"><span class="lrl">Tid till 50% belåning</span><span class="lrv" style="color:var(--accent)">${fmtMonths(monthsToLTVLoan(l, 50))}</span></div>` : ''}
         ` : ''}
       </div>
     </div>`;
@@ -3619,13 +3713,11 @@
 
       // Pre-compute LTV rows for total card
       let ltvSplitRows = '';
-      loansToSplit.filter(l => l.type === 'Bolån' && l.propertyValue > 0).forEach(l => {
-        const m = loanMonthly(l);
-        const pv = l.propertyValue;
-        const ltv = l.amount / pv * 100;
-        const extraTotal = (l.extraAmort || 0) + (l._extraA || 0) + (l._extraB || 0);
-        const t75 = ltv > 75 ? fmtMonths(monthsToLTV(l.amount, l.rate, m.amort, extraTotal, pv, 75)) : null;
-        const t50 = ltv > 50 ? fmtMonths(monthsToLTV(l.amount, l.rate, m.amort, extraTotal, pv, 50)) : null;
+      loansToSplit.filter(l => l.type === 'Bolån' && (l.currentPropertyValue > 0 || l.propertyValue > 0)).forEach(l => {
+        const pv = getEffectivePropertyValue(l, new Date().getFullYear());
+        const ltv = pv > 0 ? l.amount / pv * 100 : 0;
+        const t75 = ltv > 75 ? fmtMonths(monthsToLTVLoan(l, 75)) : null;
+        const t50 = ltv > 50 ? fmtMonths(monthsToLTVLoan(l, 50)) : null;
         if (t75 || t50) ltvSplitRows += '<div style="height:1px;background:var(--border);margin:6px 0;"></div>';
         if (t75) ltvSplitRows += '<div class="pr-row" style="background:rgba(180,83,9,0.04);border-radius:5px;"><span style="color:var(--muted)">Tid till 75% belåning</span><span class="pr-val" style="color:var(--warning)">' + t75 + '</span></div>';
         if (t50) ltvSplitRows += '<div class="pr-row" style="background:rgba(22,163,74,0.04);border-radius:5px;"><span style="color:var(--muted)">Tid till 50% belåning</span><span class="pr-val" style="color:var(--accent)">' + t50 + '</span></div>';
@@ -4538,6 +4630,7 @@
 
       for (let yi = 0; yi < yearCount; yi++) {
         const yr = minYear + yi;
+        const propValForYr = getTotalEffectivePropertyValue(bolaan, yr);
         let estCells = '', actCells = '';
         for (let mi = 0; mi < 12; mi++) {
           const key = yr + '-' + mi;
@@ -4545,8 +4638,8 @@
           const actAmort = actByMonth[key] !== undefined ? actByMonth[key] : 0;
           balEst = Math.max(0, balEst - estAmort);
           balAct = Math.max(0, balAct - actAmort);
-          const ltvEst = totalPropVal > 0 ? (balEst / totalPropVal * 100) : 0;
-          const ltvAct = totalPropVal > 0 ? (balAct / totalPropVal * 100) : 0;
+          const ltvEst = propValForYr > 0 ? (balEst / propValForYr * 100) : 0;
+          const ltvAct = propValForYr > 0 ? (balAct / propValForYr * 100) : 0;
           const colEst = ltvEst > 75 ? 'var(--red)' : ltvEst > 50 ? 'var(--warning)' : 'var(--accent)';
           const colAct = ltvAct > 75 ? 'var(--red)' : ltvAct > 50 ? 'var(--warning)' : 'var(--accent)';
           const hasEst = estByMonth[key] !== undefined;
@@ -4569,6 +4662,7 @@
       let reached70Est = false, reached50Est = false, reached70Act = false, reached50Act = false;
       for (let yi = 0; yi < yearCount; yi++) {
         const yr = minYear + yi;
+        const propValForYr = getTotalEffectivePropertyValue(bolaan, yr);
         let estCells = '', actCells = '';
         for (let mi = 0; mi < 12; mi++) {
           const key = yr + '-' + mi;
@@ -4576,8 +4670,8 @@
           const actAmort = actByMonth[key] !== undefined ? actByMonth[key] : 0;
           balEst = Math.max(0, balEst - estAmort);
           balAct = Math.max(0, balAct - actAmort);
-          const ltvEst = totalPropVal > 0 ? (balEst / totalPropVal * 100) : 0;
-          const ltvAct = totalPropVal > 0 ? (balAct / totalPropVal * 100) : 0;
+          const ltvEst = propValForYr > 0 ? (balEst / propValForYr * 100) : 0;
+          const ltvAct = propValForYr > 0 ? (balAct / propValForYr * 100) : 0;
           const colEst = ltvEst > 75 ? '#dc2626' : ltvEst > 50 ? '#b45309' : '#16a34a';
           const colAct = ltvAct > 75 ? '#dc2626' : ltvAct > 50 ? '#b45309' : '#16a34a';
           const hasEst = estByMonth[key] !== undefined;
@@ -5051,7 +5145,7 @@
       if (bolaan.length === 0 || !hasYears) { emptyEl.style.display = 'block'; tableEl.style.display = 'none'; return; }
       emptyEl.style.display = 'none'; tableEl.style.display = 'block';
 
-      const totalPropVal = bolaan.reduce((s, l) => s + (l.currentPropertyValue || l.propertyValue || 0), 0);
+      const totalPropValNow = getTotalEffectivePropertyValue(bolaan, new Date().getFullYear());
       const totalLoan = bolaan.reduce((s, l) => s + l.amount, 0);
       const avgRate = bolaan.reduce((s, l) => s + l.rate * l.amount, 0) / totalLoan;
       const avgAmortPct = bolaan.reduce((s, l) => s + (l.amortPct || 0) * l.amount, 0) / totalLoan;
@@ -5098,15 +5192,15 @@
       const sectionHdr = (label, color) =>
         '<th colspan="5" style="' + thTd + 'color:' + color + ';border-left:2px solid ' + color + ';background:rgba(0,0,0,0.02);">' + label + '</th>';
 
-      const propA = totalPropVal * pctA / 100;
-      const propB = totalPropVal * pctB / 100;
       const ltvCol = v => v <= 50 ? '#16a34a' : v <= 70 ? '#b45309' : '#dc2626';
       const cell = (v, color, small, bLeft) => '<td style="padding:' + (small ? '5px 8px' : '8px 10px') + ';text-align:right;font-family:monospace;font-size:' + (small ? '11' : '12') + 'px;' + (color ? 'color:' + color + ';' : '') + (bLeft ? 'border-left:2px solid ' + bLeft + ';' : '') + '">' + fmt(v) + '</td>';
       const cellB = (v, small, bLeft) => '<td style="padding:' + (small ? '5px 8px' : '8px 10px') + ';text-align:right;font-family:monospace;font-size:' + (small ? '11' : '12') + 'px;font-weight:600;' + (bLeft ? 'border-left:2px solid ' + bLeft + ';' : '') + '">' + fmt(v) + '</td>';
       const ltvCell = (v, small, bLeft) => '<td style="padding:' + (small ? '5px 8px' : '8px 10px') + ';text-align:right;font-family:monospace;font-size:' + (small ? '11' : '12') + 'px;font-weight:700;color:' + ltvCol(v) + ';' + (bLeft ? 'border-left:2px solid ' + bLeft + ';' : '') + '">' + v.toFixed(1) + '%</td>';
 
-      const makeRow = (label, balance, balA, balB, isStart, prevTotal, loanBreakdown, amortA_mth, amortB_mth) => {
-        const ltv = totalPropVal > 0 ? balance / totalPropVal * 100 : 0;
+      const makeRow = (label, balance, balA, balB, isStart, prevTotal, loanBreakdown, amortA_mth, amortB_mth, rowPropVal) => {
+        const propA = rowPropVal * pctA / 100;
+        const propB = rowPropVal * pctB / 100;
+        const ltv = rowPropVal > 0 ? balance / rowPropVal * 100 : 0;
         const ltvA = propA > 0 ? balA / propA * 100 : 0;
         const ltvB = propB > 0 ? balB / propB * 100 : 0;
 
@@ -5137,8 +5231,8 @@
           loanBreakdown.forEach(lb => {
             const lA = lb.balA, lB = lb.balB, lTot = lb.bal;
             const mlA = monthlyFor(lA), mlB = monthlyFor(lB), mlT = monthlyFor(lTot);
-            const lltvA = propA > 0 ? lA / (lb.propA || propA) * 100 : 0;
-            const lltvB = propB > 0 ? lB / (lb.propB || propB) * 100 : 0;
+            const lltvA = (lb.propA || propA) > 0 ? lA / (lb.propA || propA) * 100 : 0;
+            const lltvB = (lb.propB || propB) > 0 ? lB / (lb.propB || propB) * 100 : 0;
             const lltvT = lb.propV > 0 ? lTot / lb.propV * 100 : 0;
             html += '<tr style="border-bottom:1px solid var(--border);background:var(--surface2);">' +
               '<td style="padding:5px 8px 5px 22px;font-size:11px;color:var(--muted);white-space:nowrap;">↳ ' + lb.name + '</td>' +
@@ -5155,17 +5249,20 @@
       };
 
       // Build initial loan breakdown
-      const buildBreakdown = (loanList, balances) => loanList.map((l, i) => ({
-        name: l.type + (l.rate ? ' ' + l.rate + '%' : ''),
-        bal: balances ? balances[i] : l.amount,
-        balA: (balances ? balances[i] : l.amount) * pctA / 100,
-        balB: (balances ? balances[i] : l.amount) * pctB / 100,
-        propV: l.currentPropertyValue || l.propertyValue || 0,
-        propA: (l.currentPropertyValue || l.propertyValue || 0) * pctA / 100,
-        propB: (l.currentPropertyValue || l.propertyValue || 0) * pctB / 100
-      }));
-      const initBreakdown = buildBreakdown(bolaan, null);
-      let rows = makeRow('Nu · ' + new Date().getFullYear(), totalLoan, totalLoan * pctA / 100, totalLoan * pctB / 100, true, null, initBreakdown, initAmortA_mth, initAmortB_mth);
+      const buildBreakdown = (loanList, balances, evalYear) => loanList.map((l, i) => {
+        const effV = getEffectivePropertyValue(l, evalYear);
+        return {
+          name: l.type + (l.rate ? ' ' + l.rate + '%' : ''),
+          bal: balances ? balances[i] : l.amount,
+          balA: (balances ? balances[i] : l.amount) * pctA / 100,
+          balB: (balances ? balances[i] : l.amount) * pctB / 100,
+          propV: effV,
+          propA: effV * pctA / 100,
+          propB: effV * pctB / 100
+        };
+      });
+      const initBreakdown = buildBreakdown(bolaan, null, currentYear);
+      let rows = makeRow('Nu · ' + currentYear, totalLoan, totalLoan * pctA / 100, totalLoan * pctB / 100, true, null, initBreakdown, initAmortA_mth, initAmortB_mth, totalPropValNow);
       let runBal = totalLoan;
       let runBalA = totalLoan * pctA / 100;
       let runBalB = totalLoan * pctB / 100;
@@ -5185,7 +5282,8 @@
           const share = totalLoan > 0 ? l.amount / totalLoan : 0;
           return share * runBal;
         });
-        const breakdown = buildBreakdown(bolaan, loanBals);
+        const breakdown = buildBreakdown(bolaan, loanBals, y.year);
+        const propValForY = getTotalEffectivePropertyValue(bolaan, y.year);
 
         let amortA_mth = amortA / 12;
         let amortB_mth = amortB / 12;
@@ -5194,10 +5292,18 @@
           amortB_mth = runBalB * avgAmortPct / 100 / 12;
         }
 
-        rows += makeRow(y.year + (hasAct ? ' (utfall)' : ' (est)'), runBal, runBalA, runBalB, false, null, breakdown, amortA_mth, amortB_mth);
+        const isNewBuildSwitchYr = bolaan.some(l => l.isNewBuild && (parseInt(l.startYear) || currentYear) + 5 === y.year);
+        const rowLabel = y.year + (hasAct ? ' (utfall)' : ' (est)') + (isNewBuildSwitchYr ? ' ★ Nyvärdering' : '');
+
+        rows += makeRow(rowLabel, runBal, runBalA, runBalB, false, null, breakdown, amortA_mth, amortB_mth, propValForY);
       });
 
       const currentAmortPct = totalLoan > 0 ? ((initAmortA_mth + initAmortB_mth) * 12 / totalLoan * 100) : 0;
+      const anyNewBuild = bolaan.some(l => l.isNewBuild);
+      const propEndVal = bolaan.reduce((s, l) => s + (l.currentPropertyValue || l.propertyValue || 0), 0);
+      const propInfoStr = anyNewBuild && totalPropValNow !== propEndVal
+        ? 'fastighetsvärde ' + fmt(totalPropValNow) + ' (värde vid köp första 5 åren → nuvarande värde ' + fmt(propEndVal) + ' efter 5 år)'
+        : 'fastighetsvärde ' + fmt(totalPropValNow);
       tableEl.innerHTML =
         '<div style="overflow-x:auto;">' +
         '<table style="width:100%;border-collapse:collapse;font-size:12px;">' +
@@ -5222,7 +5328,7 @@
         '</thead>' +
         '<tbody>' + rows + '</tbody>' +
         '</table></div>' +
-        '<p style="font-size:11px;color:var(--muted);margin-top:10px;">' + avgRate.toFixed(2) + '% snittränta · ' + currentAmortPct.toFixed(2) + '% amortering · fastighetsvärde ' + fmt(totalPropVal) + '.</p>';
+        '<p style="font-size:11px;color:var(--muted);margin-top:10px;">' + avgRate.toFixed(2) + '% snittränta · ' + currentAmortPct.toFixed(2) + '% amortering · ' + propInfoStr + '.</p>';
     }
 
     (function restoreSummeringLate() {
