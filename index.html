@@ -1272,6 +1272,396 @@
       margin-top: 28px;
       font-family: 'DM Mono', monospace;
     }
+
+    /* ── SQLITE DB BUTTON & MODAL ── */
+    .nav-db-btn {
+      margin-left: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all .15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .nav-db-btn:hover {
+      border-color: var(--accent2);
+      color: var(--accent2);
+      background: rgba(37, 99, 235, 0.04);
+    }
+
+    .db-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .db-dot.ready {
+      background: var(--accent);
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.16);
+    }
+
+    .db-dot.loading {
+      background: var(--warning);
+    }
+
+    .db-dot.error {
+      background: var(--red);
+    }
+
+    .db-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(4px);
+      z-index: 999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .db-modal-backdrop.open {
+      display: flex;
+    }
+
+    .db-modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 620px;
+      max-height: 88vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
+    }
+
+    .db-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .db-modal-header h2 {
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .db-modal-close {
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 2px 6px;
+      line-height: 1;
+      border-radius: 6px;
+    }
+
+    .db-modal-close:hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .db-modal-body {
+      padding: 20px 22px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .db-status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 12px;
+    }
+
+    .db-status-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+    }
+
+    .db-status-meta {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .db-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 8px;
+    }
+
+    .db-stat-box {
+      background: var(--surface2);
+      border-radius: 9px;
+      padding: 10px 12px;
+    }
+
+    .db-stat-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .db-stat-val {
+      font-family: 'DM Mono', monospace;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .db-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .db-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all .15s;
+    }
+
+    .db-btn:hover {
+      border-color: var(--accent2);
+      color: var(--accent2);
+    }
+
+    .db-btn.primary {
+      background: var(--accent2);
+      border-color: var(--accent2);
+      color: #fff;
+    }
+
+    .db-btn.primary:hover {
+      opacity: 0.9;
+      color: #fff;
+    }
+
+    .db-btn.danger {
+      color: var(--red);
+      margin-left: auto;
+    }
+
+    .db-btn.danger:hover {
+      border-color: var(--red);
+      background: rgba(220, 38, 38, 0.05);
+    }
+
+    .db-sql-details {
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+    }
+
+    .db-sql-details summary {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .db-sql-presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 10px 0 8px;
+    }
+
+    .db-preset-chip {
+      font-size: 11px;
+      padding: 4px 9px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+      cursor: pointer;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .db-preset-chip:hover {
+      border-color: var(--accent2);
+      color: var(--accent2);
+    }
+
+    .db-sql-input {
+      width: 100%;
+      min-height: 70px;
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface2);
+      color: var(--text);
+      resize: vertical;
+      outline: none;
+    }
+
+    .db-sql-input:focus {
+      border-color: var(--accent2);
+      background: var(--surface);
+    }
+
+    .db-sql-output {
+      margin-top: 10px;
+      max-height: 220px;
+      overflow: auto;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+    }
+
+    .db-sql-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .db-sql-table th,
+    .db-sql-table td {
+      text-align: left;
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      max-width: 240px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .db-sql-table th {
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 10px;
+      text-transform: uppercase;
+      position: sticky;
+      top: 0;
+    }
+
+    .db-feedback {
+      font-size: 12px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .db-feedback.ok {
+      display: block;
+      background: rgba(22, 163, 74, 0.08);
+      color: var(--accent);
+      border: 1px solid rgba(22, 163, 74, 0.2);
+    }
+
+    .db-feedback.err {
+      display: block;
+      background: rgba(220, 38, 38, 0.08);
+      color: var(--red);
+      border: 1px solid rgba(220, 38, 38, 0.2);
+    }
+
+    .db-feedback.warn {
+      display: block;
+      background: rgba(180, 83, 9, 0.08);
+      color: var(--warning);
+      border: 1px solid rgba(180, 83, 9, 0.25);
+    }
+
+    .db-section {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: var(--surface);
+    }
+
+    .db-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .db-field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 560px) {
+      .db-field-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .db-field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+
+    .db-field input {
+      width: 100%;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface2);
+      color: var(--text);
+      outline: none;
+    }
+
+    .db-field input:focus {
+      border-color: var(--accent2);
+      background: var(--surface);
+    }
   </style>
 </head>
 
@@ -1288,6 +1678,10 @@
       <button class="nav-tab" onclick="showPage('manad')">Räntor</button>
       <button class="nav-tab" onclick="showPage('delad')">Delad ekonomi</button>
       <button class="nav-tab" onclick="showPage('faktura')">Fakturor</button>
+      <button class="nav-db-btn" id="dbNavBtn" onclick="openDbModal()" title="Hantera lokal SQLite-databas (.sqlite) & molnsynk">
+        <span class="db-dot loading" id="dbStatusDot"></span>
+        <span id="dbNavLabel">SQLite</span>
+      </button>
     </div>
   </nav>
 
@@ -1666,6 +2060,16 @@
       </div>
 
       <div style="height:32px"></div>
+      <p class="p2-section-title">Belåningsgrad — <em>per månad</em></p>
+      <div class="big-chart-wrap" id="ltv-month-wrap">
+        <div id="ltv-month-empty" class="empty-state">
+          <div class="icon">🏠</div>Lägg till ett bolån med fastighetsvärde och amortering i Lån &amp; Räntor för att se
+          LTV per månad.
+        </div>
+        <div id="ltv-month-table-wrap" style="display:none;overflow-x:auto;"></div>
+      </div>
+
+      <div style="height:32px"></div>
 
       <div
         style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
@@ -1685,16 +2089,6 @@
         </div>
       </div>
       <div id="analys-years-wrap"></div>
-
-      <div style="height:32px"></div>
-      <p class="p2-section-title">Belåningsgrad — <em>per månad</em></p>
-      <div class="big-chart-wrap" id="ltv-month-wrap">
-        <div id="ltv-month-empty" class="empty-state">
-          <div class="icon">🏠</div>Lägg till ett bolån med fastighetsvärde och amortering i Lån &amp; Räntor för att se
-          LTV per månad.
-        </div>
-        <div id="ltv-month-table-wrap" style="display:none;overflow-x:auto;"></div>
-      </div>
 
       <div style="height:32px"></div>
       <p class="p2-section-title">Månadskostnad vid LTV-nivåer</p>
@@ -2096,6 +2490,125 @@
     </div>
   </div><!-- end page-faktura -->
 
+  <!-- SQLITE & CLOUD SYNC MODAL -->
+  <div class="db-modal-backdrop" id="dbModal" onclick="if(event.target===this)closeDbModal()">
+    <div class="db-modal" role="dialog" aria-modal="true" aria-labelledby="dbModalTitle">
+      <div class="db-modal-header">
+        <h2 id="dbModalTitle">Databas &amp; Molnsynk</h2>
+        <button class="db-modal-close" onclick="closeDbModal()" aria-label="Stäng">×</button>
+      </div>
+      <div class="db-modal-body">
+
+        <!-- 1. MOLNSYNK (PRIVAT GITHUB GIST — UPPDELADE FILER) -->
+        <div class="db-section">
+          <div class="db-section-title">
+            <span>Molnsynk — Privat GitHub Gist</span>
+            <a id="gistOpenLink" href="#" target="_blank" rel="noopener"
+              style="display:none;font-size:11px;font-weight:600;color:var(--accent2);text-decoration:none;text-transform:none;letter-spacing:0;">Öppna på GitHub →</a>
+          </div>
+
+          <div class="db-status-bar">
+            <div class="db-status-left">
+              <span class="db-dot" id="gistStatusDot"></span>
+              <span id="gistStatusText">Ej kopplad (endast lokal SQLite)</span>
+            </div>
+            <label style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);cursor:pointer;">
+              <input type="checkbox" id="gistAutoSync" checked onchange="toggleGistAutoSync(this.checked)"
+                style="accent-color:var(--accent2);cursor:pointer;">
+              Auto-synka
+            </label>
+          </div>
+
+          <p style="font-size:12px;color:var(--muted);line-height:1.5;">
+            Kom åt all data på dator &amp; mobil, helt privat. Datan delas upp i <strong>6 separata filer</strong>
+            (<code style="font-family:'DM Mono',monospace;">kalkyl</code>, <code style="font-family:'DM Mono',monospace;">lan_summering</code>,
+            <code style="font-family:'DM Mono',monospace;">bank_rates</code>, <code style="font-family:'DM Mono',monospace;">delad_ekonomi</code>,
+            <code style="font-family:'DM Mono',monospace;">analys_years</code>, <code style="font-family:'DM Mono',monospace;">fakturor</code>)
+            plus en separat <code style="font-family:'DM Mono',monospace;">backup_snapshot.json</code> — om en fil blir korrupt fungerar resten och återställs automatiskt.
+          </p>
+
+          <div class="db-field-grid">
+            <div class="db-field">
+              <label for="gistTokenInput">GitHub-token (sparas bara i din browser)</label>
+              <input type="password" id="gistTokenInput" placeholder="ghp_… eller github_pat_…" autocomplete="off">
+            </div>
+            <div class="db-field">
+              <label for="gistIdInput">Gist ID (valfritt — hittas/skapas automatiskt)</label>
+              <input type="text" id="gistIdInput" placeholder="Lämna tomt för auto" autocomplete="off">
+            </div>
+          </div>
+
+          <div class="db-actions">
+            <button type="button" class="db-btn primary" onclick="connectGistSync()">Koppla &amp; synka</button>
+            <button type="button" class="db-btn" onclick="pullFromGist(false)">↓ Hämta</button>
+            <button type="button" class="db-btn" onclick="pushToGist(false)">↑ Spara</button>
+            <button type="button" class="db-btn danger" onclick="disconnectGistSync()">Koppla bort</button>
+          </div>
+
+          <div id="gistFeedback" class="db-feedback"></div>
+          <div id="gistFilesList"></div>
+
+          <details style="font-size:12px;color:var(--muted);">
+            <summary style="cursor:pointer;font-weight:600;user-select:none;">Hur skapar jag en GitHub-token? (30 sek)</summary>
+            <ol style="margin:8px 0 0 18px;line-height:1.6;">
+              <li>Gå till <a href="https://github.com/settings/tokens/new?description=Lonekalkylator&scopes=gist" target="_blank" rel="noopener" style="color:var(--accent2);">github.com/settings/tokens/new (gist) →</a></li>
+              <li>Se till att bara rutan <strong>gist</strong> är ikryssad och klicka <strong>Generate token</strong>.</li>
+              <li>Klistra in token ovan och klicka <strong>Koppla &amp; synka</strong>. På en ny dator/mobil klistrar du bara in samma token — Gisten hittas automatiskt!</li>
+            </ol>
+          </details>
+        </div>
+
+        <!-- 2. LOKAL SQLITE (INDEXEDDB + .SQLITE-FIL) -->
+        <div class="db-section">
+          <div class="db-section-title">
+            <span>Lokal SQLite-databas (IndexedDB)</span>
+            <span class="db-status-meta" id="dbModalMeta">—</span>
+          </div>
+
+          <div class="db-status-bar">
+            <div class="db-status-left">
+              <span class="db-dot loading" id="dbModalDot"></span>
+              <span id="dbModalStatusText">Initierar SQLite...</span>
+            </div>
+          </div>
+
+          <div class="db-stats-grid" id="dbStatsGrid"></div>
+
+          <div class="db-actions">
+            <button type="button" class="db-btn primary" onclick="exportSqliteFile()">↓ Exportera .sqlite</button>
+            <label class="db-btn" style="cursor:pointer;">
+              ↑ Importera .sqlite
+              <input type="file" id="dbImportInput" accept=".sqlite,.sqlite3,.db" style="display:none"
+                onchange="importSqliteFile(this.files[0]); this.value='';">
+            </label>
+            <button type="button" class="db-btn danger" onclick="resetSqliteDb()">Återställ</button>
+          </div>
+
+          <div id="dbFeedback" class="db-feedback"></div>
+
+          <details class="db-sql-details">
+            <summary>SQL-konsol (avancerat)</summary>
+            <div class="db-sql-presets">
+              <button type="button" class="db-preset-chip" onclick="setSqlPreset('SELECT name FROM sqlite_master WHERE type=\'table\' ORDER BY name;')">Tabeller</button>
+              <button type="button" class="db-preset-chip" onclick="setSqlPreset('SELECT * FROM settings ORDER BY key;')">settings</button>
+              <button type="button" class="db-preset-chip" onclick="setSqlPreset('SELECT * FROM loans;')">loans</button>
+              <button type="button" class="db-preset-chip" onclick="setSqlPreset('SELECT * FROM bank_rates ORDER BY sort_order;')">bank_rates</button>
+              <button type="button" class="db-preset-chip" onclick="setSqlPreset('SELECT * FROM shared_expenses ORDER BY sort_order;')">shared_expenses</button>
+              <button type="button" class="db-preset-chip" onclick="setSqlPreset('SELECT * FROM analys_years ORDER BY year DESC;')">analys_years</button>
+              <button type="button" class="db-preset-chip" onclick="setSqlPreset('SELECT * FROM invoices ORDER BY date DESC;')">invoices</button>
+            </div>
+            <textarea id="dbSqlInput" class="db-sql-input" spellcheck="false">SELECT * FROM loans;</textarea>
+            <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+              <button type="button" class="db-btn primary" style="padding:6px 14px;font-size:12px;" onclick="runCustomSql()">Kör SQL</button>
+            </div>
+            <div id="dbSqlOutput" class="db-sql-output"></div>
+          </details>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
   <footer>Lönekalkylator Aktiebolag — v18.4 — Gota Innovation AB</footer>
 
   <script>
@@ -2193,6 +2706,7 @@
     function setMomsPeriod(p) {
       momsPeriod = p;
       try { localStorage.setItem('ab_moms_period', p); } catch (e) { }
+      scheduleSqliteSync();
       const bK = document.getElementById('btn-kvartal');
       const bA = document.getElementById('btn-ar');
       const lbl = document.getElementById('moms-period-label');
@@ -2457,6 +2971,7 @@
           churchMember: document.getElementById('churchMember').checked
         };
         localStorage.setItem('ab_kalkyl_inputs', JSON.stringify(data));
+        scheduleSqliteSync();
       } catch (e) {
         console.error('Failed to save inputs:', e);
       }
@@ -2583,7 +3098,7 @@
       try { return JSON.parse(localStorage.getItem('ab_kalkyl_data') || '{"estimates":[],"outcomes":[]}'); }
       catch (e) { return { estimates: [], outcomes: [] }; }
     }
-    function saveData(d) { localStorage.setItem('ab_kalkyl_data', JSON.stringify(d)); }
+    function saveData(d) { localStorage.setItem('ab_kalkyl_data', JSON.stringify(d)); scheduleSqliteSync(); }
 
 
     // ── SAVE ESTIMATE ──
@@ -2843,17 +3358,17 @@
         const sorted = [...analysYears].sort((a, b) => a.year - b.year);
         labels = sorted.flatMap(y => AY_MONTHS.map(m => m + ' ' + y.year));
 
-        const mainLoan = loans.find(l => l.amount > 0) || null;
-        const totalEnteredEst = [...analysYears].flatMap(y => y.est).reduce((s, v) => s + (parseFloat(v) || 0), 0);
-        const startBalance = mainLoan ? mainLoan.amount : totalEnteredEst > 0 ? totalEnteredEst * 12 : 0;
+        const ctxB = getBolaanContext();
+        const totalEnteredEst = [...analysYears].flatMap(y => y.est || []).reduce((s, v) => s + parseAYNum(v), 0);
+        const startBalance = ctxB.totalLoan > 0 ? ctxB.totalLoan : loans.reduce((s, l) => s + (l.amount || 0), 0) || (totalEnteredEst > 0 ? totalEnteredEst * 12 : 0);
 
         const estBal = [], actBal = [];
         let runEst = startBalance, runAct = startBalance;
         let hasEst = false, hasAct = false;
         sorted.forEach(y => {
           for (let mi = 0; mi < 12; mi++) {
-            const estAmt = parseFloat(y.est[mi]) || 0;
-            const actAmt = parseFloat(y.act[mi]) || 0;
+            const estAmt = (parseAYNum(y.estA?.[mi]) + parseAYNum(y.estB?.[mi])) || parseAYNum(y.est?.[mi]);
+            const actAmt = (parseAYNum(y.actA?.[mi]) + parseAYNum(y.actB?.[mi])) || parseAYNum(y.act?.[mi]);
             if (estAmt > 0) { runEst = Math.max(0, runEst - estAmt); hasEst = true; }
             if (actAmt > 0) { runAct = Math.max(0, runAct - actAmt); hasAct = true; }
             estBal.push(runEst);
@@ -2909,8 +3424,9 @@
         // År view: show remaining loan balance per year based on cumulative amortization
         const sorted = [...analysYears].sort((a, b) => a.year - b.year);
 
-        const startBalY = loans.reduce((s, l) => s + (l.amount || 0), 0);
-        const propValY = loans.reduce((s, l) => s + (l.currentPropertyValue || l.propertyValue || 0), 0);
+        const ctxB = getBolaanContext();
+        const startBalY = ctxB.totalLoan > 0 ? ctxB.totalLoan : loans.reduce((s, l) => s + (l.amount || 0), 0);
+        const propValY = ctxB.totalPropVal;
 
         labels = ['Start', ...sorted.map(y => String(y.year))];
 
@@ -2919,8 +3435,11 @@
         let runEstY = startBalY, runActY = startBalY;
         let hasEstY = false, hasActY = false;
         sorted.forEach(y => {
-          const estSum = y.est.reduce((s, v) => s + (parseFloat(v) || 0), 0);
-          const actSum = y.act.reduce((s, v) => s + (parseFloat(v) || 0), 0);
+          let estSum = 0, actSum = 0;
+          for (let mi = 0; mi < 12; mi++) {
+            estSum += (parseAYNum(y.estA?.[mi]) + parseAYNum(y.estB?.[mi])) || parseAYNum(y.est?.[mi]);
+            actSum += (parseAYNum(y.actA?.[mi]) + parseAYNum(y.actB?.[mi])) || parseAYNum(y.act?.[mi]);
+          }
           if (estSum > 0) { runEstY = Math.max(0, runEstY - estSum); hasEstY = true; }
           if (actSum > 0) { runActY = Math.max(0, runActY - actSum); hasActY = true; }
           estBalY.push(startBalY > 0 ? runEstY : null);
@@ -2978,9 +3497,10 @@
         const horizonYears = 50;
         labels = ['Start', ...Array.from({ length: horizonYears }, (_, i) => String(startYr + i))];
 
-        const startBal = loans.reduce((s, l) => s + (l.amount || 0), 0);
-        const propVal = loans.reduce((s, l) => s + (l.currentPropertyValue || l.propertyValue || 0), 0);
-        const baseLoanAmortYearly = loans.reduce((s, l) => {
+        const ctxBL = getBolaanContext(startYr);
+        const startBal = ctxBL.totalLoan > 0 ? ctxBL.totalLoan : loans.reduce((s, l) => s + (l.amount || 0), 0);
+        const propVal = ctxBL.totalPropVal;
+        const baseLoanAmortYearly = (ctxBL.bolaan.length > 0 ? ctxBL.bolaan : loans).reduce((s, l) => {
           if (!l.amount) return s;
           const mAmort = l.amount * (l.amortPct || 0) / 100 / 12 + (l.extraAmort || 0) + (l._extraA || 0) + (l._extraB || 0);
           return s + mAmort * 12;
@@ -2992,8 +3512,11 @@
         let hasEstData = false;
         let hasActData = false;
         sorted.forEach(y => {
-          const estSum = (y.est || []).reduce((s, v) => s + (parseFloat(v) || 0), 0);
-          const actSum = (y.act || []).reduce((s, v) => s + (parseFloat(v) || 0), 0);
+          let estSum = 0, actSum = 0;
+          for (let mi = 0; mi < 12; mi++) {
+            estSum += (parseAYNum(y.estA?.[mi]) + parseAYNum(y.estB?.[mi])) || parseAYNum(y.est?.[mi]);
+            actSum += (parseAYNum(y.actA?.[mi]) + parseAYNum(y.actB?.[mi])) || parseAYNum(y.act?.[mi]);
+          }
           yearMap[y.year] = { estSum, actSum };
           if (estSum > 0) { lastEstAnnual = estSum; hasEstData = true; }
           if (actSum > 0) { lastActAnnual = actSum; hasActData = true; }
@@ -3143,7 +3666,7 @@
     // ── LOAN MODULE ──
     let loans = JSON.parse(localStorage.getItem('ab_loans') || '[]');
     loans.forEach(l => {
-      if (l.currentPropertyValue === undefined) {
+      if (l.type === 'Bolån' && l.currentPropertyValue === undefined) {
         l.currentPropertyValue = l.propertyValue || 3000000;
       }
       if (l.isNewBuild === undefined) {
@@ -3171,10 +3694,44 @@
     }
 
     function getTotalEffectivePropertyValue(loanList, evalYear) {
-      return loanList.reduce((s, l) => s + getEffectivePropertyValue(l, evalYear), 0);
+      const mort = loanList.filter(l => l.type === 'Bolån');
+      const vals = mort.map(l => getEffectivePropertyValue(l, evalYear)).filter(v => v > 0);
+      return vals.length > 0 ? Math.max(...vals) : 0;
     }
 
-    function saveLoans() { localStorage.setItem('ab_loans', JSON.stringify(loans)); }
+    function getBolaanContext(evalYear) {
+      const yr = evalYear !== undefined && evalYear !== null ? evalYear : new Date().getFullYear();
+      // Include ALL Bolån with a balance, even if property value is only filled on one of the loan cards
+      const bolaan = loans.filter(l => l.type === 'Bolån' && l.amount > 0);
+      const totalLoan = bolaan.reduce((s, l) => s + (l.amount || 0), 0);
+      const totalPropVal = getTotalEffectivePropertyValue(bolaan, yr);
+      const totalPurchaseVal = bolaan.length > 0 ? Math.max(0, ...bolaan.map(l => l.propertyValue || l.currentPropertyValue || 0)) : 0;
+      const totalCurrentVal = bolaan.length > 0 ? Math.max(0, ...bolaan.map(l => l.currentPropertyValue || l.propertyValue || 0)) : 0;
+      const avgRate = totalLoan > 0 ? bolaan.reduce((s, l) => s + (l.rate || 0) * l.amount, 0) / totalLoan : 0;
+      const avgAmortPct = totalLoan > 0 ? bolaan.reduce((s, l) => s + (l.amortPct || 0) * l.amount, 0) / totalLoan : 0;
+
+      const pctA = parseFloat(document.getElementById('ownerASlider')?.value || '80');
+      const pctB = 100 - pctA;
+      const insatsA = typeof parseAYNum === 'function' ? parseAYNum(document.getElementById('insatsA')?.value) : 0;
+      const insatsB = typeof parseAYNum === 'function' ? parseAYNum(document.getElementById('insatsB')?.value) : 0;
+
+      let startBalA = totalLoan * pctA / 100;
+      let startBalB = totalLoan - startBalA;
+      if ((insatsA > 0 || insatsB > 0) && totalLoan > 0) {
+        const baseVal = totalPurchaseVal > 0 ? totalPurchaseVal : totalLoan;
+        const rawNetA = Math.max(0, baseVal * pctA / 100 - insatsA);
+        const rawNetB = Math.max(0, baseVal * pctB / 100 - insatsB);
+        const rawSum = rawNetA + rawNetB;
+        if (rawSum > 0) {
+          startBalA = totalLoan * (rawNetA / rawSum);
+          startBalB = totalLoan - startBalA;
+        }
+      }
+
+      return { bolaan, totalLoan, totalPropVal, totalPurchaseVal, totalCurrentVal, avgRate, avgAmortPct, pctA, pctB, insatsA, insatsB, startBalA, startBalB };
+    }
+
+    function saveLoans() { localStorage.setItem('ab_loans', JSON.stringify(loans)); scheduleSqliteSync(); }
 
     function fmtLoanInput(el) {
       const raw = parseFloat(String(el.value).replace(/[\s\u00a0kr]/gi, '')) || 0;
@@ -3442,6 +3999,9 @@
       const totalMthInterest = loans.reduce((s, l) => s + loanMonthly(l).interest, 0);
       const totalMthAmort = loans.reduce((s, l) => s + loanMonthly(l).totalAmort, 0);
       const totalMth = totalMthInterest + totalMthAmort;
+      const ctxB = getBolaanContext(new Date().getFullYear());
+      const totalLtv = ctxB.totalPropVal > 0 && ctxB.totalLoan > 0 ? (ctxB.totalLoan / ctxB.totalPropVal * 100) : null;
+      const ltvCol = totalLtv !== null ? (totalLtv > 70 ? 'red' : totalLtv > 50 ? 'warn' : 'green') : '';
       const pocket = lastSnapshot ? lastSnapshot.totalPocket / 12 : null;
       const pctOfPocket = pocket && pocket > 0 ? (totalMth / pocket * 100) : null;
       const pctStr = pctOfPocket ? pctOfPocket.toFixed(1) + '%' : null;
@@ -3451,6 +4011,7 @@
       el.innerHTML = `
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:${pocket ? '16px' : '0'};">
         <div class="est-kv"><div class="est-kv-label">Total skuld</div><div class="est-kv-value red">${totalDebt.toLocaleString('sv-SE')} kr</div></div>
+        ${totalLtv !== null ? `<div class="est-kv"><div class="est-kv-label">Total belåningsgrad (LTV)</div><div class="est-kv-value ${ltvCol}">${totalLtv.toFixed(1)}%</div></div>` : ''}
         <div class="est-kv"><div class="est-kv-label">Ränta / mån</div><div class="est-kv-value red">${Math.round(totalMthInterest).toLocaleString('sv-SE')} kr</div></div>
         <div class="est-kv"><div class="est-kv-label">Amortering / mån</div><div class="est-kv-value">${Math.round(totalMthAmort).toLocaleString('sv-SE')} kr</div></div>
         <div class="est-kv"><div class="est-kv-label">Total lånekostnad / mån</div><div class="est-kv-value warn">${Math.round(totalMth).toLocaleString('sv-SE')} kr</div></div>
@@ -3510,10 +4071,19 @@
       const sel2 = document.getElementById('extraLoanSelect');
       const resEl = document.getElementById('extraResult');
       if (!sel2 || !resEl) return;
+      try {
+        localStorage.setItem('extra_amort_data', JSON.stringify({
+          loanId: sel2.value || '',
+          amount: document.getElementById('extraAmount')?.value || '',
+          payer: document.getElementById('extraPayer')?.value || 'A'
+        }));
+        scheduleSqliteSync();
+      } catch (e) { }
+      loans.forEach(x => { x._extraA = 0; x._extraB = 0; });
       const lId = parseInt(sel2.value);
       const l = loans.find(x => x.id === lId);
       const extra = parseFloat(String(document.getElementById('extraAmount').value).replace(/[\s\u00a0kr]/gi, '')) || 0;
-      if (!l) { resEl.innerHTML = ''; return; }
+      if (!l) { resEl.innerHTML = ''; calcSplit(); return; }
 
       const baseAmortKr = l.amount * (l.amortPct || 0) / 100 / 12;
       const normal = totalInterestCost(l.amount, l.rate, baseAmortKr);
@@ -3582,6 +4152,7 @@
           insatsA: document.getElementById('insatsA')?.value || '',
           insatsB: document.getElementById('insatsB')?.value || ''
         }));
+        scheduleSqliteSync();
       } catch (e) { }
       if (!slider || !resEl) return;
       const pctA = parseFloat(slider.value);
@@ -3589,7 +4160,8 @@
 
       // Totals from loans
       const totalLoan2 = loans.reduce((s, l) => s + l.amount, 0);
-      const totalPropVal2 = loans.reduce((s, l) => s + (l.propertyValue || 0), 0);
+      const bolaanPurchaseVals = loans.filter(l => l.type === 'Bolån').map(l => l.propertyValue || 0);
+      const totalPropVal2 = bolaanPurchaseVals.length > 0 ? Math.max(...bolaanPurchaseVals) : 0;
       // Loan per person based on property value (köpeskilling) × ownership %
       const baseForSplit = totalPropVal2 > 0 ? totalPropVal2 : totalLoan2;
       const debtA = Math.round(baseForSplit * pctA / 100);
@@ -3835,7 +4407,7 @@
     let BANKS = JSON.parse(localStorage.getItem('bank_rates') || 'null') || BANKS_DEFAULT.map(b => ({ ...b }));
     // Migrate old entries missing negotiating field
     BANKS.forEach(b => { if (b.negotiating === undefined) b.negotiating = false; });
-    function saveBanks() { localStorage.setItem('bank_rates', JSON.stringify(BANKS)); }
+    function saveBanks() { localStorage.setItem('bank_rates', JSON.stringify(BANKS)); scheduleSqliteSync(); }
     function updateBankRate(idx, field, val) {
       const v = field === 'name' ? val : (parseFloat(String(val).replace(',', '.')) || 0);
       BANKS[idx][field] = v;
@@ -4042,7 +4614,7 @@
     ];
     let deIdCounter = deExpenses.length ? Math.max(...deExpenses.map(e => e.id)) + 1 : 5;
 
-    function saveDeExpenses() { localStorage.setItem('de_expenses', JSON.stringify(deExpenses)); }
+    function saveDeExpenses() { localStorage.setItem('de_expenses', JSON.stringify(deExpenses)); scheduleSqliteSync(); }
 
     function fmtDeladInput(el) {
       const raw = parseFloat(String(el.value).replace(/[\s\u00a0kr]/gi, '')) || 0;
@@ -4394,7 +4966,7 @@
     renderAnalysYears();
 
     // ── ANALYS YEARS ──
-    function saveAnalysYears() { localStorage.setItem('analys_years', JSON.stringify(analysYears)); }
+    function saveAnalysYears() { localStorage.setItem('analys_years', JSON.stringify(analysYears)); scheduleSqliteSync(); }
 
     function addAnalysYear() {
       const yr = new Date().getFullYear();
@@ -4402,9 +4974,20 @@
       // Start from current year or one above highest existing year
       let newYr = used.length > 0 ? Math.max(...used) + 1 : yr;
       while (used.includes(newYr)) newYr++;
-      analysYears.unshift({ year: newYr, estA: Array(12).fill(''), estB: Array(12).fill(''), actA: Array(12).fill(''), actB: Array(12).fill('') });
+      analysYears.unshift({
+        year: newYr,
+        estA: Array(12).fill(''),
+        estB: Array(12).fill(''),
+        actA: Array(12).fill(''),
+        actB: Array(12).fill(''),
+        est: Array(12).fill(''),
+        act: Array(12).fill('')
+      });
       saveAnalysYears();
       renderAnalysYears();
+      renderLoanLineChart();
+      renderLtvMonthTable();
+      renderLtvCostTable();
     }
 
     function removeAnalysYear(yr) {
@@ -4412,6 +4995,8 @@
       saveAnalysYears();
       renderAnalysYears();
       renderLoanLineChart();
+      renderLtvMonthTable();
+      renderLtvCostTable();
     }
 
     function parseAYNum(val) {
@@ -4502,6 +5087,7 @@
       if (loanLineChartInstance) { loanLineChartInstance.destroy(); loanLineChartInstance = null; }
       renderLoanLineChart();
       renderLtvMonthTable();
+      renderLtvCostTable();
     }
 
     function renderAnalysYears() {
@@ -4583,101 +5169,60 @@
       const tableWrap = document.getElementById('ltv-month-table-wrap');
       if (!emptyEl || !tableWrap) return;
 
-      const bolaan = loans.filter(l => l.type === 'Bolån' && l.amount > 0 && (l.currentPropertyValue > 0 || l.propertyValue > 0));
-      if (bolaan.length === 0) { emptyEl.style.display = 'block'; tableWrap.style.display = 'none'; return; }
+      const startYear = new Date().getFullYear();
+      const ctxB = getBolaanContext(startYear);
+      const { bolaan, totalLoan: totalAmount, totalPropVal } = ctxB;
+      if (bolaan.length === 0 || totalPropVal <= 0) { emptyEl.style.display = 'block'; tableWrap.style.display = 'none'; return; }
 
       emptyEl.style.display = 'none'; tableWrap.style.display = 'block';
 
       const MONTH_NAMES2 = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
-      const startYear = new Date().getFullYear();
 
-      // Start balance from loan cards
-      const totalAmount = bolaan.reduce((s, l) => s + l.amount, 0);
-      const totalPropVal = bolaan.reduce((s, l) => s + (l.currentPropertyValue || l.propertyValue || 0), 0);
-
-      // Build month lookup from analysYears utfall (act) — keyed by "YYYY-M" (0-indexed month)
+      // Build month lookups safely from per-person arrays (fallback to combined est/act)
       const actByMonth = {};
-      analysYears.forEach(y => {
-        y.act.forEach((v, mi) => {
-          const val = parseFloat(v) || 0;
-          if (val > 0) actByMonth[y.year + '-' + mi] = val;
-        });
-      });
-
-      const hasUtfall = Object.keys(actByMonth).length > 0;
-
-      // Build estimat lookup
       const estByMonth = {};
       analysYears.forEach(y => {
-        y.est.forEach((v, mi) => {
-          const val = parseFloat(v) || 0;
-          if (val > 0) estByMonth[y.year + '-' + mi] = val;
-        });
+        for (let mi = 0; mi < 12; mi++) {
+          const aVal = (parseAYNum(y.actA?.[mi]) + parseAYNum(y.actB?.[mi])) || parseAYNum(y.act?.[mi]);
+          const eVal = (parseAYNum(y.estA?.[mi]) + parseAYNum(y.estB?.[mi])) || parseAYNum(y.est?.[mi]);
+          if (aVal > 0) actByMonth[y.year + '-' + mi] = aVal;
+          if (eVal > 0) estByMonth[y.year + '-' + mi] = eVal;
+        }
       });
 
-      const hasEstimat = Object.keys(estByMonth).length > 0;
-
-      // Determine year range
       const allYears = analysYears.map(y => y.year);
       const maxYear = allYears.length > 0 ? Math.max(...allYears, startYear + 4) : startYear + 4;
       const minYear = allYears.length > 0 ? Math.min(...allYears, startYear) : startYear;
       const yearCount = maxYear - minYear + 1;
 
-      // Two parallel balance tracks: estimat and utfall
-      let rows = '';
-      let balEst = totalAmount, balAct = totalAmount;
       const thStyle = 'padding:6px 6px;font-family:monospace;font-size:10px;letter-spacing:.05em;text-transform:uppercase;text-align:right;white-space:nowrap;';
-
-      for (let yi = 0; yi < yearCount; yi++) {
-        const yr = minYear + yi;
-        const propValForYr = getTotalEffectivePropertyValue(bolaan, yr);
-        let estCells = '', actCells = '';
-        for (let mi = 0; mi < 12; mi++) {
-          const key = yr + '-' + mi;
-          const estAmort = estByMonth[key] !== undefined ? estByMonth[key] : 0;
-          const actAmort = actByMonth[key] !== undefined ? actByMonth[key] : 0;
-          balEst = Math.max(0, balEst - estAmort);
-          balAct = Math.max(0, balAct - actAmort);
-          const ltvEst = propValForYr > 0 ? (balEst / propValForYr * 100) : 0;
-          const ltvAct = propValForYr > 0 ? (balAct / propValForYr * 100) : 0;
-          const colEst = ltvEst > 75 ? 'var(--red)' : ltvEst > 50 ? 'var(--warning)' : 'var(--accent)';
-          const colAct = ltvAct > 75 ? 'var(--red)' : ltvAct > 50 ? 'var(--warning)' : 'var(--accent)';
-          const hasEst = estByMonth[key] !== undefined;
-          const hasAct = actByMonth[key] !== undefined;
-          estCells += '<td style="padding:4px 4px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap;' + (hasEst ? 'background:rgba(249,115,22,0.04);' : '') + '">' +
-            '<div style="font-family:monospace;font-size:11px;color:' + colEst + ';font-weight:600;">' + ltvEst.toFixed(1) + '%</div>' +
-            '</td>';
-          actCells += '<td style="padding:4px 4px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap;' + (hasAct ? 'background:rgba(79,70,229,0.04);' : '') + '">' +
-            '<div style="font-family:monospace;font-size:11px;color:' + colAct + ';font-weight:600;">' + ltvAct.toFixed(1) + '%</div>' +
-            '</td>';
-        }
-        const yrCell = '<td rowspan="2" style="padding:5px 8px;font-family:monospace;font-size:11px;font-weight:600;border-bottom:2px solid var(--border);border-right:2px solid var(--border);white-space:nowrap;vertical-align:middle;">' + yr + '</td>';
-        rows += '<tr><td style="padding:3px 6px;font-size:10px;color:#f97316;font-weight:600;border-right:1px solid var(--border);white-space:nowrap;font-family:monospace;">Est</td>' + estCells + '</tr>' +
-          '<tr style="border-bottom:2px solid var(--border);"><td style="padding:3px 6px;font-size:10px;color:#4f46e5;font-weight:600;border-right:1px solid var(--border);white-space:nowrap;font-family:monospace;">Utfall</td>' + actCells + '</tr>';
-      }
-
-      // Rebuild with year labels in a separate first column using a layout trick
       let finalRows = '';
-      balEst = totalAmount; balAct = totalAmount;
-      let reached70Est = false, reached50Est = false, reached70Act = false, reached50Act = false;
+      let balEst = totalAmount, balAct = totalAmount;
+      const initPropVal = getTotalEffectivePropertyValue(bolaan, minYear);
+      const startLtv = initPropVal > 0 ? (totalAmount / initPropVal * 100) : 0;
+      let reached70Est = startLtv <= 70, reached50Est = startLtv <= 50;
+      let reached70Act = startLtv <= 70, reached50Act = startLtv <= 50;
+
       for (let yi = 0; yi < yearCount; yi++) {
         const yr = minYear + yi;
         const propValForYr = getTotalEffectivePropertyValue(bolaan, yr);
+        const isSwitchYr = bolaan.some(l => l.isNewBuild && (parseInt(l.startYear) || startYear) + 5 === yr);
         let estCells = '', actCells = '';
         for (let mi = 0; mi < 12; mi++) {
           const key = yr + '-' + mi;
-          const estAmort = estByMonth[key] !== undefined ? estByMonth[key] : 0;
-          const actAmort = actByMonth[key] !== undefined ? actByMonth[key] : 0;
+          const hasEst = estByMonth[key] !== undefined;
+          const hasAct = actByMonth[key] !== undefined;
+          const estAmort = hasEst ? estByMonth[key] : 0;
+          const actAmort = hasAct ? actByMonth[key] : 0;
+
           balEst = Math.max(0, balEst - estAmort);
           balAct = Math.max(0, balAct - actAmort);
           const ltvEst = propValForYr > 0 ? (balEst / propValForYr * 100) : 0;
           const ltvAct = propValForYr > 0 ? (balAct / propValForYr * 100) : 0;
-          const colEst = ltvEst > 75 ? '#dc2626' : ltvEst > 50 ? '#b45309' : '#16a34a';
-          const colAct = ltvAct > 75 ? '#dc2626' : ltvAct > 50 ? '#b45309' : '#16a34a';
-          const hasEst = estByMonth[key] !== undefined;
-          const hasAct = actByMonth[key] !== undefined;
 
-          // Detect first crossing of 70% and 50% for cell highlight
+          const colEst = ltvEst > 70 ? '#dc2626' : ltvEst > 50 ? '#b45309' : '#16a34a';
+          const colAct = ltvAct > 70 ? '#dc2626' : ltvAct > 50 ? '#b45309' : '#16a34a';
+
           const hit70Est = !reached70Est && ltvEst <= 70;
           const hit50Est = !reached50Est && ltvEst <= 50;
           const hit70Act = !reached70Act && ltvAct <= 70;
@@ -4694,19 +5239,19 @@
             hit70Act ? 'background:rgba(180,83,9,0.15);outline:2px solid #b45309;outline-offset:-2px;' :
               hasAct ? 'background:rgba(37,99,235,0.05);' : '';
 
-          const titleEst = hit50Est ? ' title="Når 50% LTV"' : hit70Est ? ' title="Når 70% LTV"' : '';
-          const titleAct = hit50Act ? ' title="Når 50% LTV"' : hit70Act ? ' title="Når 70% LTV"' : '';
+          const tipEst = 'Kvar: ' + Math.round(balEst).toLocaleString('sv-SE') + ' kr · Värde: ' + Math.round(propValForYr).toLocaleString('sv-SE') + ' kr' + (hit50Est ? ' · Når 50% LTV' : hit70Est ? ' · Når 70% LTV' : '');
+          const tipAct = 'Kvar: ' + Math.round(balAct).toLocaleString('sv-SE') + ' kr · Värde: ' + Math.round(propValForYr).toLocaleString('sv-SE') + ' kr' + (hit50Act ? ' · Når 50% LTV' : hit70Act ? ' · Når 70% LTV' : '');
 
-          estCells += '<td style="padding:8px 6px;text-align:right;border-bottom:1px solid var(--border);' + bgEst + '"' + titleEst + '>' +
+          estCells += '<td style="padding:8px 6px;text-align:right;border-bottom:1px solid var(--border);' + bgEst + '" title="' + tipEst + '">' +
             '<div style="font-family:monospace;font-size:13px;color:' + colEst + ';font-weight:600;white-space:nowrap;">' + ltvEst.toFixed(1) + '%</div>' +
             '</td>';
-          actCells += '<td style="padding:8px 6px;text-align:right;border-bottom:1px solid var(--border);' + bgAct + '"' + titleAct + '>' +
+          actCells += '<td style="padding:8px 6px;text-align:right;border-bottom:1px solid var(--border);' + bgAct + '" title="' + tipAct + '">' +
             '<div style="font-family:monospace;font-size:13px;color:' + colAct + ';font-weight:600;white-space:nowrap;">' + ltvAct.toFixed(1) + '%</div>' +
             '</td>';
         }
         finalRows +=
           '<tr style="background:var(--surface2);">' +
-          '<td colspan="14" style="padding:5px 10px;font-family:monospace;font-size:12px;font-weight:700;border-top:2px solid var(--border);border-bottom:1px solid var(--border);letter-spacing:.04em;">' + yr + '</td>' +
+          '<td colspan="13" style="padding:5px 10px;font-family:monospace;font-size:12px;font-weight:700;border-top:2px solid var(--border);border-bottom:1px solid var(--border);letter-spacing:.04em;">' + yr + (isSwitchYr ? ' <span style="color:var(--accent2);font-size:10px;">★ Nyvärdering (' + Math.round(propValForYr).toLocaleString('sv-SE') + ' kr)</span>' : '') + '</td>' +
           '</tr>' +
           '<tr>' +
           '<td style="padding:6px 8px;font-size:10px;font-weight:700;color:#f97316;border-right:1px solid var(--border);border-bottom:1px solid var(--border);white-space:nowrap;font-family:monospace;">Est</td>' +
@@ -4727,9 +5272,9 @@
         '<tbody>' + finalRows + '</tbody>' +
         '</table>' +
         '<p style="font-size:11px;color:var(--muted);margin-top:10px;">' +
-        '🟢 &lt;50% · 🟠 50–75% · 🔴 &gt;75% &nbsp;|&nbsp; ' +
+        '🟢 ≤50% · 🟠 50–70% · 🔴 &gt;70% &nbsp;|&nbsp; ' +
         '<span style="color:#f97316;">■</span> Estimat &nbsp; <span style="color:#4f46e5;">■</span> Utfall &nbsp;— ' +
-        'Månader utan inmatat värde behåller saldot oförändrat.' +
+        'Startskuld ' + Math.round(totalAmount).toLocaleString('sv-SE') + ' kr · Fastighetsvärde ' + Math.round(initPropVal).toLocaleString('sv-SE') + ' kr (hovra för saldo). Månader utan värde behåller saldot oförändrat.' +
         '</p>';
     }
 
@@ -4737,7 +5282,7 @@
     // ── FAKTUROR ──
     let fakturor = JSON.parse(localStorage.getItem('fakturor') || '[]');
     let fakIdCounter = fakturor.length ? Math.max(...fakturor.map(f => f.id)) + 1 : 1;
-    function saveFakturor() { localStorage.setItem('fakturor', JSON.stringify(fakturor)); }
+    function saveFakturor() { localStorage.setItem('fakturor', JSON.stringify(fakturor)); scheduleSqliteSync(); }
 
     function addFakturaFromData(data) {
       fakturor.unshift({ id: fakIdCounter++, desc: data.desc || 'Faktura', amount: data.amount || 0, date: data.date || new Date().toISOString().slice(0, 7), paid: false });
@@ -5067,8 +5612,13 @@
             const est = Array.from({ length: 12 }, (_, i) => { const v = parseFloat(estRow[i + 1]) || 0; return v > 0 ? String(v) : ''; });
             const act = Array.from({ length: 12 }, (_, i) => { const v = parseFloat(actRow[i + 1]) || 0; return v > 0 ? String(v) : ''; });
             const existing = analysYears.find(y => y.year === yr);
-            if (existing) { existing.est = est; existing.act = act; }
-            else { analysYears.unshift({ year: yr, est, act }); }
+            if (existing) {
+              existing.est = est; existing.act = act;
+              existing.estA = [...est]; existing.estB = Array(12).fill('');
+              existing.actA = [...act]; existing.actB = Array(12).fill('');
+            } else {
+              analysYears.unshift({ year: yr, est, act, estA: [...est], estB: Array(12).fill(''), actA: [...act], actB: Array(12).fill('') });
+            }
             imported++;
           });
           analysYears.sort((a, b) => b.year - a.year);
@@ -5076,6 +5626,7 @@
           renderAnalysYears();
           renderLoanLineChart();
           renderLtvMonthTable();
+          renderLtvCostTable();
           alert(imported + ' år importerade.');
         } catch (err) {
           alert('Kunde inte läsa filen: ' + err.message);
@@ -5088,6 +5639,7 @@
     function setPocketPeriod(p) {
       _pocketPeriod = p;
       try { localStorage.setItem('pocket_period', p); } catch (e) { }
+      scheduleSqliteSync();
       document.getElementById('btn-pocket-month').style.background = p === 'month' ? 'var(--accent2)' : 'transparent';
       document.getElementById('btn-pocket-month').style.color = p === 'month' ? '#fff' : 'var(--muted)';
       document.getElementById('btn-pocket-year').style.background = p === 'year' ? 'var(--accent2)' : 'transparent';
@@ -5140,55 +5692,55 @@
       const tableEl = document.getElementById('ltv-cost-table');
       if (!emptyEl || !tableEl) return;
 
-      const bolaan = loans.filter(l => l.amount > 0 && (l.currentPropertyValue > 0 || l.propertyValue > 0));
+      const currentYear = new Date().getFullYear();
+      const ctxB = getBolaanContext(currentYear);
+      const { bolaan, totalLoan, totalPropVal: totalPropValNow, totalCurrentVal: propEndVal, avgRate, avgAmortPct, pctA, pctB, insatsA, insatsB, startBalA, startBalB } = ctxB;
       const hasYears = analysYears.length > 0;
-      if (bolaan.length === 0 || !hasYears) { emptyEl.style.display = 'block'; tableEl.style.display = 'none'; return; }
+      if (bolaan.length === 0 || totalPropValNow <= 0 || !hasYears) { emptyEl.style.display = 'block'; tableEl.style.display = 'none'; return; }
       emptyEl.style.display = 'none'; tableEl.style.display = 'block';
-
-      const totalPropValNow = getTotalEffectivePropertyValue(bolaan, new Date().getFullYear());
-      const totalLoan = bolaan.reduce((s, l) => s + l.amount, 0);
-      const avgRate = bolaan.reduce((s, l) => s + l.rate * l.amount, 0) / totalLoan;
-      const avgAmortPct = bolaan.reduce((s, l) => s + (l.amortPct || 0) * l.amount, 0) / totalLoan;
 
       const aName = document.getElementById('personAName')?.value || 'Person A';
       const bName = document.getElementById('personBName')?.value || 'Person B';
-      const pctA = parseFloat(document.getElementById('ownerASlider')?.value || '80');
-      const pctB = 100 - pctA;
 
       const fmt = v => Math.round(v).toLocaleString('sv-SE') + ' kr';
       const sorted = [...analysYears].sort((a, b) => a.year - b.year);
 
-      const monthlyFor = (balance) => {
-        const interest = balance * avgRate / 100 / 12;
-        const amort = balance * avgAmortPct / 100 / 12;
-        return { interest, amort, total: interest + amort };
+      // Month-by-month hybrid: actual overrides estimate per month without dropping remaining months
+      const calcYearAmort = (y) => {
+        let sumA = 0, sumB = 0, monthsA = 0, monthsB = 0, actMonths = 0, estMonths = 0;
+        for (let mi = 0; mi < 12; mi++) {
+          const aAct = parseAYNum(y.actA?.[mi]);
+          const bAct = parseAYNum(y.actB?.[mi]);
+          const aEst = parseAYNum(y.estA?.[mi]);
+          const bEst = parseAYNum(y.estB?.[mi]);
+          const effA = aAct > 0 ? aAct : aEst;
+          const effB = bAct > 0 ? bAct : bEst;
+          if (aAct > 0 || bAct > 0) actMonths++;
+          else if (aEst > 0 || bEst > 0) estMonths++;
+          if (effA > 0) { sumA += effA; monthsA++; }
+          if (effB > 0) { sumB += effB; monthsB++; }
+        }
+        return { sumA, sumB, monthsA, monthsB, actMonths, estMonths };
       };
 
-      const currentA = { interest: (totalLoan * pctA / 100) * avgRate / 100 / 12 };
-      const currentB = { interest: (totalLoan * pctB / 100) * avgRate / 100 / 12 };
+      const startTotalInterest = totalLoan * avgRate / 100 / 12;
 
-      // Calculate initial year's monthly amortization
-      const currentYear = new Date().getFullYear();
       const currentYearData = analysYears.find(y => y.year === currentYear);
       let initAmortA_mth = 0;
       let initAmortB_mth = 0;
       if (currentYearData) {
-        const actASum = (currentYearData.actA || []).reduce((s, v) => s + (parseFloat(v) || 0), 0);
-        const actBSum = (currentYearData.actB || []).reduce((s, v) => s + (parseFloat(v) || 0), 0);
-        const estASum = (currentYearData.estA || []).reduce((s, v) => s + (parseFloat(v) || 0), 0);
-        const estBSum = (currentYearData.estB || []).reduce((s, v) => s + (parseFloat(v) || 0), 0);
-        initAmortA_mth = (actASum > 0 ? actASum : estASum) / 12;
-        initAmortB_mth = (actBSum > 0 ? actBSum : estBSum) / 12;
+        const cy = calcYearAmort(currentYearData);
+        initAmortA_mth = cy.monthsA > 0 ? cy.sumA / cy.monthsA : 0;
+        initAmortB_mth = cy.monthsB > 0 ? cy.sumB / cy.monthsB : 0;
       }
       if (initAmortA_mth === 0 && initAmortB_mth === 0) {
-        initAmortA_mth = (totalLoan * pctA / 100) * avgAmortPct / 100 / 12;
-        initAmortB_mth = (totalLoan * pctB / 100) * avgAmortPct / 100 / 12;
+        initAmortA_mth = startBalA * avgAmortPct / 100 / 12;
+        initAmortB_mth = startBalB * avgAmortPct / 100 / 12;
       }
 
       const thTd = 'padding:7px 10px;text-align:right;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);';
       const th1 = 'padding:7px 10px;text-align:left;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);';
 
-      // Section header
       const sectionHdr = (label, color) =>
         '<th colspan="5" style="' + thTd + 'color:' + color + ';border-left:2px solid ' + color + ';background:rgba(0,0,0,0.02);">' + label + '</th>';
 
@@ -5197,7 +5749,7 @@
       const cellB = (v, small, bLeft) => '<td style="padding:' + (small ? '5px 8px' : '8px 10px') + ';text-align:right;font-family:monospace;font-size:' + (small ? '11' : '12') + 'px;font-weight:600;' + (bLeft ? 'border-left:2px solid ' + bLeft + ';' : '') + '">' + fmt(v) + '</td>';
       const ltvCell = (v, small, bLeft) => '<td style="padding:' + (small ? '5px 8px' : '8px 10px') + ';text-align:right;font-family:monospace;font-size:' + (small ? '11' : '12') + 'px;font-weight:700;color:' + ltvCol(v) + ';' + (bLeft ? 'border-left:2px solid ' + bLeft + ';' : '') + '">' + v.toFixed(1) + '%</td>';
 
-      const makeRow = (label, balance, balA, balB, isStart, prevTotal, loanBreakdown, amortA_mth, amortB_mth, rowPropVal) => {
+      const makeRow = (label, balance, balA, balB, isStart, loanBreakdown, amortA_mth, amortB_mth, rowPropVal) => {
         const propA = rowPropVal * pctA / 100;
         const propB = rowPropVal * pctB / 100;
         const ltv = rowPropVal > 0 ? balance / rowPropVal * 100 : 0;
@@ -5212,34 +5764,38 @@
         const mB = { interest: interestB, amort: amortB_mth, total: interestB + amortB_mth };
         const mT = { interest: interestT, amort: amortA_mth + amortB_mth, total: interestT + amortA_mth + amortB_mth };
 
-        const startTotalCost = currentA.interest + initAmortA_mth + currentB.interest + initAmortB_mth;
-        const saving = startTotalCost - mT.total;
+        const interestSaving = startTotalInterest - mT.interest;
         const rowBg = isStart ? 'background:rgba(37,99,235,0.04);' : '';
 
-        let html = '<tr style="border-bottom:' + (loanBreakdown && loanBreakdown.length ? '1px dashed var(--border)' : '1px solid var(--border)') + ';' + rowBg + '">' +
+        let html = '<tr style="border-bottom:' + (loanBreakdown && loanBreakdown.length > 1 ? '1px dashed var(--border)' : '1px solid var(--border)') + ';' + rowBg + '">' +
           '<td style="padding:8px 10px;font-size:12px;font-weight:700;white-space:nowrap;">' + label + (isStart ? ' <span style="font-size:10px;background:rgba(37,99,235,0.1);color:var(--accent2);padding:1px 5px;border-radius:8px;">Nu</span>' : '') + '</td>' +
           ltvCell(ltv, false, 'var(--border)') +
           ltvCell(ltvA, false, 'var(--accent2)') + '<td style="padding:8px 10px;text-align:right;font-family:monospace;font-size:12px;color:var(--accent2);font-weight:600;">' + fmt(balA) + '</td>' + cell(mA.interest, 'var(--red)') + cell(mA.amort, '') + cellB(mA.total) +
           ltvCell(ltvB, false, 'var(--accent3)') + '<td style="padding:8px 10px;text-align:right;font-family:monospace;font-size:12px;color:var(--accent3);font-weight:600;">' + fmt(balB) + '</td>' + cell(mB.interest, 'var(--red)') + cell(mB.amort, '') + cellB(mB.total) +
           cell(mT.interest, 'var(--red)', false, '#374151') + cell(mT.amort, '') + cellB(mT.total) +
-          '<td style="padding:8px 10px;text-align:right;font-family:monospace;font-size:12px;border-left:2px solid var(--border);color:' + (saving > 1 ? 'var(--accent)' : 'var(--muted)') + ';">' + (saving > 1 ? '−' + fmt(saving) : '—') + '</td>' +
+          '<td style="padding:8px 10px;text-align:right;font-family:monospace;font-size:12px;border-left:2px solid var(--border);color:' + (interestSaving > 1 ? 'var(--accent)' : 'var(--muted)') + ';">' + (interestSaving > 1 ? '−' + fmt(interestSaving) : '—') + '</td>' +
           '<td style="padding:8px 10px;text-align:right;font-family:monospace;font-size:12px;font-weight:600;border-left:2px solid var(--border);">' + fmt(balance) + '</td>' +
           '</tr>';
 
-        // Per-loan sub-rows
+        // Per-loan sub-rows using each loan's own rate and actual A/B balance share
         if (loanBreakdown && loanBreakdown.length > 1) {
           loanBreakdown.forEach(lb => {
             const lA = lb.balA, lB = lb.balB, lTot = lb.bal;
-            const mlA = monthlyFor(lA), mlB = monthlyFor(lB), mlT = monthlyFor(lTot);
-            const lltvA = (lb.propA || propA) > 0 ? lA / (lb.propA || propA) * 100 : 0;
-            const lltvB = (lb.propB || propB) > 0 ? lB / (lb.propB || propB) * 100 : 0;
-            const lltvT = lb.propV > 0 ? lTot / lb.propV * 100 : 0;
+            const intA = lA * lb.rate / 100 / 12;
+            const intB = lB * lb.rate / 100 / 12;
+            const intT = lTot * lb.rate / 100 / 12;
+            const amA = lb.amortA;
+            const amB = lb.amortB;
+            const amT = amA + amB;
+            const lltvA = propA > 0 ? lA / propA * 100 : 0;
+            const lltvB = propB > 0 ? lB / propB * 100 : 0;
+            const lltvT = rowPropVal > 0 ? lTot / rowPropVal * 100 : 0;
             html += '<tr style="border-bottom:1px solid var(--border);background:var(--surface2);">' +
               '<td style="padding:5px 8px 5px 22px;font-size:11px;color:var(--muted);white-space:nowrap;">↳ ' + lb.name + '</td>' +
               ltvCell(lltvT, true, 'var(--border)') +
-              ltvCell(lltvA, true, 'var(--accent2)') + '<td style="padding:5px 8px;text-align:right;font-family:monospace;font-size:11px;color:var(--accent2);font-weight:600;">' + fmt(lA) + '</td>' + cell(mlA.interest, 'var(--red)', true) + cell(mlA.amort, '', true) + cellB(mlA.total, true) +
-              ltvCell(lltvB, true, 'var(--accent3)') + '<td style="padding:5px 8px;text-align:right;font-family:monospace;font-size:11px;color:var(--accent3);font-weight:600;">' + fmt(lB) + '</td>' + cell(mlB.interest, 'var(--red)', true) + cell(mlB.amort, '', true) + cellB(mlB.total, true) +
-              cell(mlT.interest, 'var(--red)', true, '#374151') + cell(mlT.amort, '', true) + cellB(mlT.total, true) +
+              ltvCell(lltvA, true, 'var(--accent2)') + '<td style="padding:5px 8px;text-align:right;font-family:monospace;font-size:11px;color:var(--accent2);font-weight:600;">' + fmt(lA) + '</td>' + cell(intA, 'var(--red)', true) + cell(amA, '', true) + cellB(intA + amA, true) +
+              ltvCell(lltvB, true, 'var(--accent3)') + '<td style="padding:5px 8px;text-align:right;font-family:monospace;font-size:11px;color:var(--accent3);font-weight:600;">' + fmt(lB) + '</td>' + cell(intB, 'var(--red)', true) + cell(amB, '', true) + cellB(intB + amB, true) +
+              cell(intT, 'var(--red)', true, '#374151') + cell(amT, '', true) + cellB(intT + amT, true) +
               '<td style="border-left:2px solid var(--border);"></td>' +
               '<td style="padding:5px 8px;text-align:right;font-family:monospace;font-size:11px;border-left:2px solid var(--border);">' + fmt(lTot) + '</td>' +
               '</tr>';
@@ -5248,62 +5804,57 @@
         return html;
       };
 
-      // Build initial loan breakdown
-      const buildBreakdown = (loanList, balances, evalYear) => loanList.map((l, i) => {
-        const effV = getEffectivePropertyValue(l, evalYear);
-        return {
-          name: l.type + (l.rate ? ' ' + l.rate + '%' : ''),
-          bal: balances ? balances[i] : l.amount,
-          balA: (balances ? balances[i] : l.amount) * pctA / 100,
-          balB: (balances ? balances[i] : l.amount) * pctB / 100,
-          propV: effV,
-          propA: effV * pctA / 100,
-          propB: effV * pctB / 100
-        };
-      });
-      const initBreakdown = buildBreakdown(bolaan, null, currentYear);
-      let rows = makeRow('Nu · ' + currentYear, totalLoan, totalLoan * pctA / 100, totalLoan * pctB / 100, true, null, initBreakdown, initAmortA_mth, initAmortB_mth, totalPropValNow);
-      let runBal = totalLoan;
-      let runBalA = totalLoan * pctA / 100;
-      let runBalB = totalLoan * pctB / 100;
-      sorted.forEach(y => {
-        const actASum = (y.actA || []).reduce((s, v) => s + (parseFloat(v) || 0), 0);
-        const actBSum = (y.actB || []).reduce((s, v) => s + (parseFloat(v) || 0), 0);
-        const estASum = (y.estA || []).reduce((s, v) => s + (parseFloat(v) || 0), 0);
-        const estBSum = (y.estB || []).reduce((s, v) => s + (parseFloat(v) || 0), 0);
-        const amortA = actASum > 0 ? actASum : estASum;
-        const amortB = actBSum > 0 ? actBSum : estBSum;
-        const hasAct = actASum > 0 || actBSum > 0;
-        runBalA = Math.max(0, runBalA - amortA);
-        runBalB = Math.max(0, runBalB - amortB);
-        runBal = runBalA + runBalB;
-        // Per-loan balances (proportional amort for now)
-        const loanBals = bolaan.map(l => {
-          const share = totalLoan > 0 ? l.amount / totalLoan : 0;
-          return share * runBal;
+      const buildBreakdown = (balTotal, balA, balB, amortA_mth, amortB_mth) => {
+        const shareA = balTotal > 0 ? balA / balTotal : (pctA / 100);
+        const shareB = 1 - shareA;
+        return bolaan.map(l => {
+          const loanShare = totalLoan > 0 ? l.amount / totalLoan : 0;
+          const bal = balTotal * loanShare;
+          return {
+            name: l.type + (l.rate ? ' ' + l.rate + '%' : ''),
+            rate: l.rate || 0,
+            bal,
+            balA: bal * shareA,
+            balB: bal * shareB,
+            amortA: amortA_mth * loanShare,
+            amortB: amortB_mth * loanShare
+          };
         });
-        const breakdown = buildBreakdown(bolaan, loanBals, y.year);
-        const propValForY = getTotalEffectivePropertyValue(bolaan, y.year);
+      };
 
-        let amortA_mth = amortA / 12;
-        let amortB_mth = amortB / 12;
+      const initBreakdown = buildBreakdown(totalLoan, startBalA, startBalB, initAmortA_mth, initAmortB_mth);
+      let rows = makeRow('Nu · ' + currentYear, totalLoan, startBalA, startBalB, true, initBreakdown, initAmortA_mth, initAmortB_mth, totalPropValNow);
+      let runBal = totalLoan;
+      let runBalA = startBalA;
+      let runBalB = startBalB;
+
+      sorted.forEach(y => {
+        const yrStats = calcYearAmort(y);
+        runBalA = Math.max(0, runBalA - yrStats.sumA);
+        runBalB = Math.max(0, runBalB - yrStats.sumB);
+        runBal = runBalA + runBalB;
+
+        const propValForY = getTotalEffectivePropertyValue(bolaan, y.year);
+        let amortA_mth = yrStats.monthsA > 0 ? yrStats.sumA / yrStats.monthsA : 0;
+        let amortB_mth = yrStats.monthsB > 0 ? yrStats.sumB / yrStats.monthsB : 0;
         if (amortA_mth === 0 && amortB_mth === 0) {
           amortA_mth = runBalA * avgAmortPct / 100 / 12;
           amortB_mth = runBalB * avgAmortPct / 100 / 12;
         }
 
+        const tag = yrStats.actMonths === 12 ? ' (utfall)' : (yrStats.actMonths > 0 && yrStats.estMonths > 0) ? ' (utfall+est)' : yrStats.actMonths > 0 ? ' (utfall)' : ' (est)';
         const isNewBuildSwitchYr = bolaan.some(l => l.isNewBuild && (parseInt(l.startYear) || currentYear) + 5 === y.year);
-        const rowLabel = y.year + (hasAct ? ' (utfall)' : ' (est)') + (isNewBuildSwitchYr ? ' ★ Nyvärdering' : '');
-
-        rows += makeRow(rowLabel, runBal, runBalA, runBalB, false, null, breakdown, amortA_mth, amortB_mth, propValForY);
+        const rowLabel = y.year + tag + (isNewBuildSwitchYr ? ' ★ Nyvärdering' : '');
+        const breakdown = buildBreakdown(runBal, runBalA, runBalB, amortA_mth, amortB_mth);
+        rows += makeRow(rowLabel, runBal, runBalA, runBalB, false, breakdown, amortA_mth, amortB_mth, propValForY);
       });
 
       const currentAmortPct = totalLoan > 0 ? ((initAmortA_mth + initAmortB_mth) * 12 / totalLoan * 100) : 0;
       const anyNewBuild = bolaan.some(l => l.isNewBuild);
-      const propEndVal = bolaan.reduce((s, l) => s + (l.currentPropertyValue || l.propertyValue || 0), 0);
       const propInfoStr = anyNewBuild && totalPropValNow !== propEndVal
         ? 'fastighetsvärde ' + fmt(totalPropValNow) + ' (värde vid köp första 5 åren → nuvarande värde ' + fmt(propEndVal) + ' efter 5 år)'
         : 'fastighetsvärde ' + fmt(totalPropValNow);
+      const insatsNote = (insatsA > 0 || insatsB > 0) ? ' · justerat för insats (' + fmt(insatsA) + ' / ' + fmt(insatsB) + ')' : '';
       tableEl.innerHTML =
         '<div style="overflow-x:auto;">' +
         '<table style="width:100%;border-collapse:collapse;font-size:12px;">' +
@@ -5314,7 +5865,7 @@
         sectionHdr(aName + ' (' + pctA + '%)', 'var(--accent2)') +
         sectionHdr(bName + ' (' + pctB + '%)', 'var(--accent3)') +
         '<th colspan="3" style="' + thTd + 'border-left:2px solid #374151;background:rgba(0,0,0,0.02);">Totalt</th>' +
-        '<th style="' + thTd + 'border-left:2px solid var(--border);">Besparing vs nu</th>' +
+        '<th style="' + thTd + 'border-left:2px solid var(--border);">Räntebesp. / mån</th>' +
         '<th style="' + thTd + 'border-left:2px solid var(--border);background:rgba(0,0,0,0.02);">Kvar tot</th>' +
         '</tr>' +
         '<tr style="border-bottom:2px solid var(--border);background:var(--surface2);">' +
@@ -5322,13 +5873,28 @@
         '<th style="' + thTd + 'border-left:2px solid var(--accent2);">LTV</th><th style="' + thTd + 'color:var(--accent2);">Kvar</th><th style="' + thTd + '">Ränta</th><th style="' + thTd + '">Amort</th><th style="' + thTd + '">Totalt</th>' +
         '<th style="' + thTd + 'border-left:2px solid var(--accent3);">LTV</th><th style="' + thTd + 'color:var(--accent3);">Kvar</th><th style="' + thTd + '">Ränta</th><th style="' + thTd + '">Amort</th><th style="' + thTd + '">Totalt</th>' +
         '<th style="' + thTd + 'border-left:2px solid #374151;">Ränta</th><th style="' + thTd + '">Amort</th><th style="' + thTd + '">Totalt</th>' +
-        '<th style="' + thTd + 'border-left:2px solid var(--border);"></th>' +
+        '<th style="' + thTd + 'border-left:2px solid var(--border);">vs nu</th>' +
         '<th style="' + thTd + 'border-left:2px solid var(--border);">Totalt</th>' +
         '</tr>' +
         '</thead>' +
         '<tbody>' + rows + '</tbody>' +
         '</table></div>' +
-        '<p style="font-size:11px;color:var(--muted);margin-top:10px;">' + avgRate.toFixed(2) + '% snittränta · ' + currentAmortPct.toFixed(2) + '% amortering · ' + propInfoStr + '.</p>';
+        '<p style="font-size:11px;color:var(--muted);margin-top:10px;">' + avgRate.toFixed(2) + '% snittränta · ' + currentAmortPct.toFixed(2) + '% amorteringstakt · ' + propInfoStr + insatsNote + '.</p>';
+    }
+
+    function restoreExtraAmort() {
+      try {
+        updateSplitSelects();
+        const ed = JSON.parse(localStorage.getItem('extra_amort_data') || 'null');
+        if (!ed) return;
+        const selEl = document.getElementById('extraLoanSelect');
+        const amtEl = document.getElementById('extraAmount');
+        const payEl = document.getElementById('extraPayer');
+        if (selEl && ed.loanId !== undefined) selEl.value = ed.loanId;
+        if (amtEl && ed.amount) amtEl.value = ed.amount;
+        if (payEl && ed.payer) payEl.value = ed.payer;
+        calcExtra();
+      } catch (e) { }
     }
 
     (function restoreSummeringLate() {
@@ -5348,14 +5914,23 @@
       } catch (e) { }
     })();
 
+    restoreExtraAmort();
+
     // Restore pocket period visual state
     try {
       setPocketPeriod(_pocketPeriod);
     } catch (e) { }
 
+    // Safe shim until db.js loads
+    function scheduleSqliteSync() {
+      if (typeof window.__scheduleSqliteSync === 'function') window.__scheduleSqliteSync();
+    }
+
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.12.0/sql-wasm.js"></script>
+  <script src="db.js"></script>
 </body>
 
 </html>
